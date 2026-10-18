@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MAZ School</title>
+<meta name="description" content="Hands-on learning missions made at home.">
+<link rel="icon" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<meta property="og:title" content="MAZ School">
+<meta property="og:description" content="Hands-on learning missions made at home.">
+<meta property="og:image" content="https://mazschool.com/assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F7FF; --surface:#FFFFFF; --ink:#1F2A5C; --soft:#56628F; --line:#D6E4F7;
+  --sky:#6EC6FF; --skyd:#3E9FE0; --sun:#FFC93C; --pink:#F27BA3; --mint:#3FB58A;
+  --night:#1F2A5C; --nighttext:#FFFFFF;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121A3D; --surface:#1C2652; --ink:#F2F4FF; --soft:#B4BCE0; --line:#2C3870;
+    --night:#0E1532; --nighttext:#FFFFFF;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121A3D; --surface:#1C2652; --ink:#F2F4FF; --soft:#B4BCE0; --line:#2C3870;
+  --night:#0E1532; --nighttext:#FFFFFF;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Baloo 2","Trebuchet MS",system-ui,sans-serif;font-size:clamp(1.02rem,0.95rem + 0.4vw,1.15rem);line-height:1.5;-webkit-text-size-adjust:100%}
+a{color:inherit}
+a:focus-visible,button:focus-visible{outline:4px solid var(--pink);outline-offset:3px;border-radius:8px}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;padding:16px 0}
+.top img{height:clamp(44px,9vw,60px);width:auto;display:block}
+.top nav a{font-weight:800;text-decoration:none;padding:6px 12px;border-radius:999px}
+.top nav a:hover{background:var(--surface)}
+
+/* hero: night sky */
+.sky{position:relative;overflow:hidden;background:var(--night);color:var(--nighttext);border-radius:32px;padding:clamp(28px,6vw,64px);display:grid;grid-template-columns:1.2fr 1fr;align-items:center;gap:20px;min-height:360px}
+.sky::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.9;
+  background-image:
+   radial-gradient(2px 2px at 8% 20%,#fff 50%,transparent 51%),
+   radial-gradient(1.5px 1.5px at 22% 70%,#fff 50%,transparent 51%),
+   radial-gradient(2px 2px at 35% 12%,#fff 50%,transparent 51%),
+   radial-gradient(1.5px 1.5px at 48% 85%,#fff 50%,transparent 51%),
+   radial-gradient(2.5px 2.5px at 58% 30%,#FFC93C 50%,transparent 51%),
+   radial-gradient(1.5px 1.5px at 66% 62%,#fff 50%,transparent 51%),
+   radial-gradient(2px 2px at 78% 14%,#fff 50%,transparent 51%),
+   radial-gradient(1.5px 1.5px at 90% 48%,#fff 50%,transparent 51%),
+   radial-gradient(2px 2px at 95% 88%,#F27BA3 50%,transparent 51%),
+   radial-gradient(1.5px 1.5px at 14% 92%,#fff 50%,transparent 51%)}
+.sky > *{position:relative}
+.sky h1{font-size:clamp(2.4rem,7vw,4.2rem);line-height:.98;margin:0 0 14px;font-weight:800;letter-spacing:-.5px;max-width:12ch}
+.sky p{margin:0 0 22px;max-width:36ch;color:#D7DEFA;font-size:1.15rem}
+.btn{display:inline-flex;align-items:center;gap:8px;border:none;border-radius:18px;padding:10px 22px;min-height:54px;font:inherit;font-weight:800;font-size:1.2rem;text-decoration:none;background:var(--sun);color:#1F2A5C;box-shadow:0 5px 0 #D9A41C}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 #D9A41C}
+.planet{width:min(100%,340px);justify-self:center;animation:arrive 1.2s cubic-bezier(.2,.8,.2,1) 1}
+@keyframes arrive{from{transform:translate(60px,-40px) rotate(14deg) scale(.8);opacity:0}to{transform:none;opacity:1}}
+
+/* missions */
+.sec{margin:56px 0 0}
+.sec h2{font-size:clamp(1.7rem,4.5vw,2.3rem);line-height:1.05;margin:0 0 6px;font-weight:800}
+.sec > p{margin:0 0 22px;color:var(--soft);max-width:56ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
+.mission{display:flex;flex-direction:column;background:var(--surface);border-radius:26px;overflow:hidden;text-decoration:none;box-shadow:0 6px 0 var(--line);transition:transform .15s}
+.mission:hover{transform:translateY(-4px)}
+.art{height:150px;display:flex;align-items:center;justify-content:center;gap:10px;background:#FFD6E3;position:relative}
+.art .box{display:inline-grid;grid-template-columns:repeat(5,10px);grid-auto-rows:10px;gap:4px;padding:9px 9px 14px;border-radius:10px;background:#F27BA3;box-shadow:inset 0 -6px 0 #D9547F}
+.art .box i{display:block;width:10px;height:10px;border-radius:50%;background:#E2A04A}
+.art .cookie{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#5B3315 0 3px,transparent 3.5px),radial-gradient(circle at 65% 62%,#5B3315 0 3px,transparent 3.5px),#E2A04A}
+.mbody{padding:18px 20px 22px;display:flex;flex-direction:column;gap:6px;flex:1}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{border-radius:999px;padding:0 10px;font-weight:800;font-size:.9rem;background:var(--bg);color:var(--soft)}
+.tag.math{background:var(--sun);color:#1F2A5C}
+.mission h3{margin:4px 0 0;font-size:1.5rem;line-height:1.1;font-weight:800}
+.mission p{margin:0;color:var(--soft);font-size:1.02rem}
+.go{margin-top:auto;padding-top:10px;font-weight:800;color:var(--skyd)}
+
+/* how */
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.how div{background:var(--surface);border-radius:22px;padding:18px 20px;box-shadow:0 4px 0 var(--line)}
+.how b{display:block;font-size:1.2rem;line-height:1.2;margin-bottom:4px}
+.how p{margin:0;color:var(--soft);font-size:1rem}
+.how .dot{display:block;width:36px;height:36px;border-radius:50%;margin-bottom:10px}
+
+footer{margin:64px 0 28px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--soft);font-size:.98rem}
+footer img{height:30px;width:auto}
+
+@media (max-width:760px){
+  .sky{grid-template-columns:1fr;text-align:left}
+  .planet{width:200px;order:-1;justify-self:start}
+  .how{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a href="/" aria-label="MAZ School home">
+      <picture>
+        <source srcset="/assets/logo-light.svg" media="(prefers-color-scheme: dark)">
+        <img src="/assets/logo.svg" alt="MAZ School">
+      </picture>
+    </a>
+    <nav><a href="#missions">Missions</a></nav>
+  </header>
+
+  <section class="sky">
+    <div>
+      <h1>Learning missions, launched from home.</h1>
+      <p>Hands-on lessons with games, real objects and a little bit of space. Pick a mission and blast off.</p>
+      <a class="btn" href="/moon-bakery/">Start Moon Bakery</a>
+    </div>
+    <img class="planet" src="/assets/icon.svg" alt="">
+  </section>
+
+  <section class="sec" id="missions">
+    <h2>Missions</h2>
+    <p>Each mission is a full lesson: a game for the kids and a step-by-step guide for the grown-up.</p>
+    <div class="grid">
+      <a class="mission" href="/moon-bakery/">
+        <div class="art" aria-hidden="true">
+          <span class="box"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          <span class="box"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          <span class="cookie"></span><span class="cookie"></span>
+        </div>
+        <div class="mbody">
+          <div class="tags"><span class="tag math">Math</span><span class="tag">Ages 7–8</span><span class="tag">45 min</span></div>
+          <h3>Moon Bakery Math</h3>
+          <p>Pack cookies into boxes of 10 to learn tens and ones, add two-digit numbers and compare.</p>
+          <span class="go">Open mission</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>How a mission works</h2>
+    <div class="how">
+      <div><span class="dot" style="background:var(--sun)"></span><b>Hands on first</b><p>Every lesson starts with real things to touch and count.</p></div>
+      <div><span class="dot" style="background:var(--pink)"></span><b>Then play</b><p>A game on any tablet or computer, with turns for each kid.</p></div>
+      <div><span class="dot" style="background:var(--sky)"></span><b>Grown-up guide</b><p>Timers, checklists and check-in questions so you know it stuck.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <img src="/assets/icon.svg" alt="">
+    <span>© 2026 MAZ School</span>
+  </footer>
+</div>
+</body>
+</html>

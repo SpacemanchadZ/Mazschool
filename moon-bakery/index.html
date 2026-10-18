@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Moon Bakery Math | MAZ School</title>
+<link rel="icon" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E4F4EC; --surface:#FFFFFF; --ink:#23305E; --soft:#5A6690;
+  --pink:#F27BA3; --pinkdeep:#D9547F; --butter:#FFE38A; --cookie:#E2A04A; --chip:#5B3315;
+  --mint:#3FB58A; --oops:#E5603F; --line:#C9E6D8;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16203F; --surface:#222D55; --ink:#F3F1FF; --soft:#B7BEDF;
+    --pink:#F58DB0; --pinkdeep:#F27BA3; --butter:#F5D56A; --cookie:#E7AA58; --chip:#4A2810;
+    --mint:#5ACCA1; --oops:#FF8566; --line:#33407A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16203F; --surface:#222D55; --ink:#F3F1FF; --soft:#B7BEDF;
+  --pink:#F58DB0; --pinkdeep:#F27BA3; --butter:#F5D56A; --cookie:#E7AA58; --chip:#4A2810;
+  --mint:#5ACCA1; --oops:#FF8566; --line:#33407A;
+  color-scheme: dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 70px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Baloo 2","Trebuchet MS","Comic Sans MS",system-ui,sans-serif;font-size:clamp(1rem,0.92rem + 0.6vw,1.15rem);line-height:1.45;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+button:focus-visible,summary:focus-visible{outline:4px solid var(--pinkdeep);outline-offset:3px}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px 48px}
+
+/* top bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;justify-content:space-between;align-items:center;padding:10px 16px;max-width:720px;margin:0 auto}
+.bar b{font-weight:800;font-size:1.1rem}
+.stars{background:var(--butter);color:#23305E;border-radius:999px;padding:4px 14px;font-weight:800;font-size:1.15rem}
+.stars.pop{animation:pop .4s}
+@keyframes pop{50%{transform:scale(1.25)}}
+
+/* hero */
+.hero{text-align:center;padding:24px 0 8px}
+.hero h1{font-size:clamp(2.1rem,8.5vw,3.4rem);line-height:.95;margin:8px 0 10px;font-weight:800;letter-spacing:-.5px}
+.hero p{margin:0 auto;max-width:30ch;color:var(--soft)}
+.moon{width:clamp(80px,22vw,110px);height:clamp(80px,22vw,110px);margin:0 auto;border-radius:50%;position:relative;
+  background:radial-gradient(circle at 30% 30%,var(--chip) 0 7px,transparent 8px),
+             radial-gradient(circle at 65% 40%,var(--chip) 0 6px,transparent 7px),
+             radial-gradient(circle at 45% 70%,var(--chip) 0 8px,transparent 9px),
+             radial-gradient(circle at 75% 72%,var(--chip) 0 5px,transparent 6px),var(--cookie);
+  box-shadow:inset -10px -8px 0 rgba(0,0,0,.12);animation:float 3s ease-in-out 1}
+@keyframes float{0%{transform:translateY(30px) rotate(-20deg);opacity:0}60%{transform:translateY(-6px) rotate(4deg);opacity:1}100%{transform:none}}
+
+/* parent notes */
+details.notes{background:var(--surface);border:3px dashed var(--line);border-radius:18px;padding:12px 18px;margin:20px 0 8px;font-size:1.05rem}
+details.notes summary{font-weight:800;cursor:pointer}
+details.notes ul{padding-left:1.2em;margin:8px 0}
+
+/* stations */
+.station{background:var(--surface);border-radius:26px 26px 18px 18px;margin:28px 0;overflow:hidden;box-shadow:0 6px 0 var(--line)}
+.awning{height:22px;background:repeating-linear-gradient(90deg,var(--pink) 0 28px,var(--surface) 28px 56px);border-bottom:3px solid var(--pink)}
+.inner{padding:clamp(14px,4vw,20px) clamp(12px,4vw,20px) clamp(16px,4vw,22px)}
+.station h2{margin:0;font-size:clamp(1.3rem,4.5vw,1.6rem);line-height:1.1;font-weight:800}
+.step{display:inline-block;background:var(--ink);color:var(--surface);border-radius:12px;padding:0 10px;margin-right:6px}
+.say{color:var(--soft);margin:6px 0 14px}
+.q{font-size:clamp(1.1rem,3.8vw,1.35rem);font-weight:700;margin:6px 0 12px}
+
+/* bakery items */
+.tray{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;min-height:62px;padding:12px;border-radius:16px;background:var(--bg)}
+.box{--d:10px;--g:3px;display:inline-grid;grid-template-columns:repeat(5,var(--d));grid-auto-rows:var(--d);gap:var(--g);padding:7px 7px 11px;border-radius:9px;background:var(--pink);box-shadow:inset 0 -5px 0 var(--pinkdeep);flex:none}
+.box i{display:block;width:var(--d);height:var(--d);background:var(--cookie);border-radius:50%}
+.cookie{width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 35%,var(--chip) 0 2.5px,transparent 3px),radial-gradient(circle at 65% 60%,var(--chip) 0 2.5px,transparent 3px),var(--cookie)}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:1rem;color:var(--soft);margin:10px 0 0}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend .box{--d:6px;--g:2px;padding:4px 4px 7px}
+
+/* buttons */
+.choices{display:flex;flex-wrap:wrap;gap:12px;margin-top:14px}
+.btn{border:none;border-radius:16px;padding:8px 18px;min-height:52px;min-width:68px;font-weight:800;font-size:clamp(1.1rem,3.8vw,1.3rem);background:var(--butter);color:#23305E;box-shadow:0 5px 0 #D8B44A}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 #D8B44A}
+.btn.go{background:var(--mint);color:#fff;box-shadow:0 5px 0 #2A8A67}
+.btn.small{font-size:1.1rem;min-height:48px;padding:6px 14px}
+.btn.wrong{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.btn[disabled]{opacity:.4;cursor:default}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.ctrl{display:flex;align-items:center;justify-content:space-between;gap:6px;background:var(--bg);border-radius:16px;padding:8px;min-width:0}
+.ctrl span{white-space:nowrap;font-size:1rem}
+.ctrl .btn{min-width:48px;padding:4px 12px}
+.ctrl b{font-size:1.35rem;min-width:1.4em;text-align:center}
+
+.feedback{min-height:2em;font-weight:800;font-size:1.25rem;margin-top:14px}
+.feedback.ok{color:var(--mint)} .feedback.no{color:var(--oops)}
+.done{display:none;background:var(--butter);color:#23305E;border-radius:16px;padding:12px 16px;font-weight:800;margin-top:12px}
+.done.show{display:block}
+.progress{float:right;font-size:1rem;color:var(--soft);font-weight:700}
+
+/* add station */
+.plus{font-size:2rem;font-weight:800;text-align:center;margin:4px 0}
+.answer{font-size:clamp(1.9rem,7vw,2.3rem);font-weight:800;min-width:3.2em;min-height:1.4em;text-align:center;border-bottom:5px solid var(--ink);margin:10px auto;display:block;width:max-content;padding:0 12px}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:320px;margin:0 auto}
+.pad .btn{min-width:0;width:100%}
+.ordline{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ordline .num{font-size:clamp(1.5rem,6vw,2rem);font-weight:800;min-width:2.2em}
+.ordline .tray{min-width:0}
+
+/* compare station */
+.plates{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px}
+.plate{border:4px solid var(--line);background:var(--bg);border-radius:24px;padding:14px 10px;text-align:center}
+.plate .num{font-size:clamp(1.9rem,7vw,2.4rem);font-weight:800;line-height:1}
+.plate .tray{justify-content:center;background:transparent;padding:6px 0 0;min-height:0}
+.plate .box{--d:6px;--g:2px;padding:4px 4px 7px;border-radius:6px;box-shadow:inset 0 -3px 0 var(--pinkdeep)}
+.plate .cookie{width:18px;height:18px}
+.plate.wrong{animation:shake .4s;border-color:var(--oops)}
+.plate.right{border-color:var(--mint)}
+
+/* badge */
+.badge{text-align:center}
+.medal{width:clamp(140px,40vw,170px);height:clamp(140px,40vw,170px);margin:10px auto;border-radius:50%;background:var(--butter);color:#23305E;display:flex;flex-direction:column;align-items:center;justify-content:center;border:10px dotted var(--pink);font-weight:800;line-height:1.05}
+.medal .big{font-size:2.8rem}
+.offline{text-align:left;background:var(--bg);border-radius:16px;padding:12px 16px;margin-top:16px;font-size:1.05rem}
+
+.barr{display:flex;align-items:center;gap:8px}
+.newb{border:2px solid var(--ink);background:transparent;border-radius:999px;padding:2px 12px;font-weight:700;font-size:1rem}
+.who{margin:16px auto 0;display:flex;flex-direction:column;align-items:center;gap:6px;font-weight:800}
+.who input{font:inherit;font-size:1.3rem;font-weight:700;text-align:center;color:var(--ink);background:var(--surface);border:3px solid var(--pink);border-radius:16px;padding:8px 14px;width:min(100%,280px)}
+.who input:focus-visible{outline:4px solid var(--pinkdeep);outline-offset:2px}
+#bakerName{max-width:120px;overflow-wrap:anywhere;text-align:center}
+.board{text-align:left;margin:18px auto 0;max-width:340px;background:var(--bg);border-radius:16px;padding:12px 16px}
+.board ol{margin:6px 0 10px;padding-left:1.3em}
+@media (max-width:600px){
+  .controls{grid-template-columns:1fr}
+}
+@media (max-width:420px){
+  .wrap{padding:0 10px 40px}
+  .box{--d:8px;--g:2px;padding:5px 5px 9px}
+  .cookie{width:22px;height:22px}
+  .tray{gap:6px;padding:10px}
+  .plates{gap:10px}
+  .plate{padding:10px 6px;border-radius:18px}
+  .plate .box{--d:4px;--g:2px;padding:3px 3px 6px}
+  .plate .cookie{width:15px;height:15px}
+  .pad{gap:8px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+.tabs{display:flex;background:var(--surface);border-radius:999px;padding:4px;gap:2px;box-shadow:0 3px 0 var(--line)}
+.tab{border:none;background:transparent;border-radius:999px;padding:4px 14px;font-weight:800;font-size:1rem;color:var(--soft)}
+.tab.on{background:var(--ink);color:var(--surface)}
+.guidelink{display:inline-block;margin-top:14px;font-size:1rem;font-weight:700;color:var(--soft);background:none;border:none;text-decoration:underline}
+.ghero{padding:20px 0 4px}
+.ghero h1{font-size:clamp(2rem,7vw,2.8rem);line-height:1;margin:6px 0 8px;font-weight:800}
+.ghero p{margin:0;color:var(--soft);max-width:52ch}
+.gprog{display:flex;align-items:center;gap:12px;margin-top:14px;font-weight:700;font-size:1rem}
+.gbar{flex:1;height:14px;border-radius:999px;background:var(--surface);overflow:hidden;box-shadow:inset 0 0 0 2px var(--line)}
+.gbar span{display:block;height:100%;width:0;background:var(--mint);transition:width .3s}
+.gcard{background:var(--surface);border-radius:20px;padding:clamp(14px,4vw,20px);margin:18px 0;box-shadow:0 4px 0 var(--line)}
+.gcard h2,.gh{margin:0 0 6px;font-size:clamp(1.3rem,4.5vw,1.55rem);font-weight:800;line-height:1.15}
+.gh{margin:28px 0 4px}
+.gsay{color:var(--soft);margin:0 0 10px;font-size:1rem}
+.goals{margin:6px 0 12px;padding-left:1.3em}
+.goals li{margin:4px 0}
+.checks{display:grid;gap:8px}
+.chk{display:flex;gap:12px;align-items:flex-start;background:var(--bg);border-radius:14px;padding:10px 12px;cursor:pointer;font-size:1.02rem}
+.chk input{width:24px;height:24px;flex:none;margin-top:2px;accent-color:var(--mint)}
+.chk.is-done span{text-decoration:line-through;color:var(--soft)}
+.chk b{display:block}
+.vocab{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.vcard{border:none;border-radius:16px;background:var(--bg);padding:12px;text-align:left;min-height:96px;font-size:.98rem;box-shadow:inset 0 -4px 0 var(--line)}
+.vcard b{display:block;font-size:1.2rem}
+.vcard.flip{background:var(--pink);color:#23305E;box-shadow:inset 0 -4px 0 var(--pinkdeep)}
+.stepcard{background:var(--surface);border-radius:20px;padding:clamp(14px,4vw,20px);margin:14px 0;box-shadow:0 4px 0 var(--line);border-left:8px solid var(--pink)}
+.stepcard.is-done{border-left-color:var(--mint);opacity:.8}
+.sthead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sthead h3{margin:0;font-size:1.25rem;font-weight:800;flex:1;min-width:10ch}
+.mins{background:var(--butter);color:#23305E;border-radius:999px;padding:0 10px;font-weight:800;font-size:.95rem}
+.sayit{background:var(--bg);border-radius:12px;padding:8px 12px;margin:10px 0 6px;font-size:1rem}
+.stepcard ul{margin:8px 0;padding-left:1.2em;font-size:1.02rem}
+.stepcard li{margin:4px 0}
+.strow{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.timer.running{background:var(--pink);box-shadow:0 5px 0 var(--pinkdeep)}
+.donebox{display:flex;align-items:center;gap:8px;font-weight:800;cursor:pointer}
+.donebox input{width:26px;height:26px;accent-color:var(--mint)}
+.seg{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
+.seg button{border:3px solid var(--line);background:var(--bg);border-radius:999px;padding:4px 14px;font-weight:800;font-size:1rem}
+.seg button.on{border-color:var(--ink);background:var(--ink);color:var(--surface)}
+.lvlbody{margin:0;display:grid;gap:8px}
+.lvlbody div{background:var(--bg);border-radius:14px;padding:8px 12px}
+.lvlbody dt{font-weight:800;font-size:.95rem;color:var(--soft)}
+.lvlbody dd{margin:0;font-size:1.05rem}
+.kidnames{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.kidnames label{display:flex;flex-direction:column;font-weight:800;font-size:.95rem;flex:1;min-width:120px}
+.kidnames input{font:inherit;font-weight:700;color:var(--ink);background:var(--bg);border:3px solid var(--line);border-radius:12px;padding:6px 10px}
+.cq{background:var(--bg);border-radius:14px;padding:10px 12px;margin:8px 0}
+.cq p{margin:0 0 4px;font-size:1.05rem}
+.cq small{display:block;color:var(--soft);margin-bottom:8px}
+.cqb{display:flex;gap:8px;flex-wrap:wrap}
+.mark{border:3px solid var(--line);background:var(--surface);border-radius:12px;padding:4px 12px;font-weight:800;font-size:.98rem;min-height:44px}
+.mark.yes{border-color:var(--mint);background:var(--mint);color:#fff}
+.mark.no{border-color:var(--oops);color:var(--oops)}
+details.stk{background:var(--bg);border-radius:14px;padding:10px 12px;margin:8px 0}
+details.stk summary{font-weight:800;cursor:pointer}
+details.stk p{margin:6px 0 0;font-size:1.02rem}
+.homelink{display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:1rem;color:var(--soft);text-decoration:none;margin-bottom:10px}
+.homelink:hover{color:var(--ink)}
+</style>
+</head>
+<body>
+
+<div class="bar"><div class="tabs" role="tablist"><button class="tab on" id="tabPlay" role="tab" aria-selected="true">🍪 Play</button><button class="tab" id="tabGuide" role="tab" aria-selected="false">📋 Lesson guide</button></div><div class="barr"><span class="stars" id="stars">⭐ 0</span><button class="newb" id="newbaker">New baker</button></div></div>
+
+<main class="wrap" id="play">
+  <header class="hero">
+    <a class="homelink" href="/"><img src="/assets/icon.svg" alt="" width="28" height="28">MAZ School home</a>
+    <div class="moon" aria-hidden="true"></div>
+    <h1>Moon Bakery Math</h1>
+    <p>The moon bakers need a helper! Pack cookies into boxes of 10 and fill every order.</p>
+    <div class="who"><label for="name">Who’s baking today?</label><input id="name" maxlength="20" placeholder="Type your name" autocomplete="off"></div>
+  </header>
+
+  <div style="text-align:center"><button class="guidelink" data-go="guide">Grown-ups: open the lesson guide</button></div>
+
+  <!-- Station 1 -->
+  <section class="station" id="s1">
+    <div class="awning"></div>
+    <div class="inner">
+      <span class="progress" id="s1p">1 of 4</span>
+      <h2><span class="step">1</span>Count the boxes</h2>
+      <p class="say">Every pink box has 10 cookies inside. Count by 10s!</p>
+      <div class="tray" id="s1tray"></div>
+      <p class="q">How many cookies are on the shelf?</p>
+      <div class="choices" id="s1choices"></div>
+      <div class="feedback" id="s1fb" aria-live="polite"></div>
+      <div class="done" id="s1done">Shelf counted! Scroll down for your next job. 👇</div>
+    </div>
+  </section>
+
+  <!-- Station 2 -->
+  <section class="station" id="s2">
+    <div class="awning"></div>
+    <div class="inner">
+      <span class="progress" id="s2p">1 of 3</span>
+      <h2><span class="step">2</span>Pack the order</h2>
+      <p class="say">A customer wants cookies. Use boxes of 10 and loose cookies to make the exact number.</p>
+      <p class="q">Order: <span id="s2target" style="font-size:2rem"></span> cookies</p>
+      <div class="tray" id="s2tray" aria-live="polite"></div>
+      <div class="controls">
+        <div class="ctrl"><button class="btn small" id="s2tm" aria-label="Take away a box">−</button><span>📦 boxes <b id="s2t">0</b></span><button class="btn small" id="s2tp" aria-label="Add a box">+</button></div>
+        <div class="ctrl"><button class="btn small" id="s2om" aria-label="Take away a cookie">−</button><span>🍪 loose <b id="s2o">0</b></span><button class="btn small" id="s2op" aria-label="Add a cookie">+</button></div>
+      </div>
+      <div class="choices">
+        <button class="btn small" id="s2pack" hidden>Pack 10 cookies into a box</button>
+        <button class="btn go" id="s2ship">Send the order</button>
+      </div>
+      <div class="feedback" id="s2fb" aria-live="polite"></div>
+      <div class="done" id="s2done">Three happy customers! You’re a real packer. 📦</div>
+    </div>
+  </section>
+
+  <!-- Station 3 -->
+  <section class="station" id="s3">
+    <div class="awning"></div>
+    <div class="inner">
+      <span class="progress" id="s3p">1 of 3</span>
+      <h2><span class="step">3</span>Two orders, one bag</h2>
+      <p class="say">Put both orders in one bag. Add the boxes, then add the loose cookies.</p>
+      <div class="ordline"><span class="num" id="s3a"></span><div class="tray" id="s3atray" style="flex:1"></div></div>
+      <div class="plus">+</div>
+      <div class="ordline"><span class="num" id="s3b"></span><div class="tray" id="s3btray" style="flex:1"></div></div>
+      <span class="answer" id="s3ans" aria-live="polite">&nbsp;</span>
+      <div class="pad" id="s3pad"></div>
+      <div class="feedback" id="s3fb" aria-live="polite"></div>
+      <div class="done" id="s3done">Bags are full! Adding like a pro. 🛍️</div>
+    </div>
+  </section>
+
+  <!-- Station 4 -->
+  <section class="station" id="s4">
+    <div class="awning"></div>
+    <div class="inner">
+      <span class="progress" id="s4p">1 of 4</span>
+      <h2><span class="step">4</span>The hungry moon</h2>
+      <p class="say">The moon is very hungry. Tap the plate with <strong>more</strong> cookies. Look at the boxes first!</p>
+      <div class="plates" id="s4plates"></div>
+      <div class="feedback" id="s4fb" aria-live="polite"></div>
+      <div class="done" id="s4done">The moon is full and happy! 🌕</div>
+    </div>
+  </section>
+
+  <!-- Badge -->
+  <section class="station badge" id="s5">
+    <div class="awning"></div>
+    <div class="inner">
+      <h2>Your baker badge</h2>
+      <div class="medal"><span id="bakerName">Head Baker</span><span class="big" id="final">0</span><span>stars</span></div>
+      <p class="say" id="finalmsg">Finish the stations to fill your badge. There are 14 stars to win.</p>
+      <button class="btn go" id="reset">Next baker’s turn</button>
+      <div class="board" id="board" hidden><strong>Today’s bakers</strong><ol id="boardlist"></ol><button class="newb" id="clearboard">Clear the list</button></div>
+      <div class="offline">
+        <strong>Off-screen bonus:</strong> grab 30–60 pieces of cereal and 10-cup egg cartons. Have someone call out a number like 34, then pack it fast. Switch jobs and you call the number!
+      </div>
+    </div>
+  </section>
+</main>
+<main class="wrap" id="guide" hidden>
+  <header class="ghero">
+    <h1>Lesson guide</h1>
+    <p>Tens and ones at the Moon Bakery. About 45 minutes for ages 7–8. Check things off as you go; your progress is saved on this device.</p>
+    <div class="gprog"><div class="gbar"><span id="gfill"></span></div><span id="gpct">0 of 6 steps done</span></div>
+  </header>
+
+  <section class="gcard">
+    <h2>What they’ll learn</h2>
+    <ol class="goals">
+      <li>Count by 10s to 100 and back down.</li>
+      <li>Build any number from 11 to 99 as tens and ones, and say it both ways (47 is 4 tens and 7 ones).</li>
+      <li>Trade 10 ones for 1 ten.</li>
+      <li>Add two two-digit numbers by adding the tens, then the ones.</li>
+      <li>Tell which of two numbers is bigger by looking at the tens first.</li>
+    </ol>
+  </section>
+
+  <section class="gcard">
+    <h2>Get ready</h2>
+    <p class="gsay">Gather these before the kids sit down so the lesson keeps moving.</p>
+    <div class="checks" id="mats"></div>
+  </section>
+
+  <section class="gcard">
+    <h2>Words to use</h2>
+    <p class="gsay">Tap a card to see the bakery version. Have the kids say each word back.</p>
+    <div class="vocab" id="vocab"></div>
+  </section>
+
+  <h2 class="gh">Teach it step by step</h2>
+  <div id="steps"></div>
+
+  <section class="gcard">
+    <h2>Two kids, one game</h2>
+    <ol class="goals">
+      <li>The first kid types their name on the Play screen and plays all four stations.</li>
+      <li>The other kid builds each problem with real cartons and counters at the same time.</li>
+      <li>When the first kid finishes, tap <strong>Next baker’s turn</strong> (tap twice to confirm). Their stars are saved to the bakers list.</li>
+      <li>Switch jobs and play again. Every turn gets new problems.</li>
+    </ol>
+    <button class="btn go" data-go="play">Go to the game</button>
+  </section>
+
+  <section class="gcard">
+    <h2>Make it easier or harder</h2>
+    <div class="seg" id="lvl" role="group" aria-label="Level">
+      <button data-l="0">More support</button><button data-l="1" class="on">On track</button><button data-l="2">Ready for more</button>
+    </div>
+    <dl class="lvlbody" id="lvlbody"></dl>
+  </section>
+
+  <section class="gcard">
+    <h2>Check-in</h2>
+    <p class="gsay">Ask these out loud at the end with counters nearby. Tap a name to mark it: once for got it, again for not yet.</p>
+    <div class="kidnames">
+      <label>Kid 1 <input id="k1" maxlength="16" placeholder="Name"></label>
+      <label>Kid 2 <input id="k2" maxlength="16" placeholder="Name"></label>
+    </div>
+    <div id="checkin"></div>
+  </section>
+
+  <section class="gcard">
+    <h2>If they get stuck</h2>
+    <div id="stuck"></div>
+  </section>
+
+  <section class="gcard">
+    <h2>This week</h2>
+    <p class="gsay">Short daily practice makes it stick. Each takes 10–15 minutes.</p>
+    <div class="checks" id="week"></div>
+    <p class="gsay" style="margin-top:12px">When both kids can build any number to 99 and add two orders with a trade, they’re ready for two-digit subtraction.</p>
+  </section>
+
+  <div style="text-align:center;margin-top:24px"><button class="newb" id="guideReset">Start the guide over</button></div>
+</main>
+
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const rand = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+  const shuffle = arr => arr.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(p=>p[1]);
+  let stars = 0;
+
+  // Little sounds
+  let actx = null;
+  function tone(ok){
+    try{
+      actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+      const notes = ok ? [523,659,784] : [300,220];
+      notes.forEach((f,i)=>{
+        const o = actx.createOscillator(), g = actx.createGain();
+        o.type = "triangle"; o.frequency.value = f;
+        g.gain.setValueAtTime(.18, actx.currentTime + i*.1);
+        g.gain.exponentialRampToValueAtTime(.001, actx.currentTime + i*.1 + .25);
+        o.connect(g).connect(actx.destination);
+        o.start(actx.currentTime + i*.1); o.stop(actx.currentTime + i*.1 + .3);
+      });
+    }catch(e){}
+  }
+
+  function addStar(){
+    stars++;
+    const s = $("stars"); s.textContent = "⭐ " + stars;
+    s.classList.remove("pop"); void s.offsetWidth; s.classList.add("pop");
+    $("final").textContent = stars;
+    $("finalmsg").textContent = stars >= 14
+      ? "Every star! " + ($("name").value.trim() ? $("name").value.trim() + " is" : "You are") + " the Head Baker of the Moon Bakery. 🎉"
+      : "Keep going — there are 14 stars to win.";
+  }
+  const cheers = ["Yum, that’s right!","You got it!","Great counting!","Super baker!","Perfect!"];
+  function say(id, text, ok){ const f=$(id); f.textContent=text; f.className="feedback "+(ok?"ok":"no"); }
+
+  function boxHTML(){ return '<span class="box" aria-hidden="true">' + "<i></i>".repeat(10) + "</span>"; }
+  function cookieHTML(){ return '<span class="cookie" aria-hidden="true"></span>'; }
+  function orderHTML(t,o){ return boxHTML().repeat(t) + cookieHTML().repeat(o); }
+
+  /* ---------- Station 1 ---------- */
+  const s1 = {round:0, total:4, n:0};
+  function s1New(){
+    let n; do { n = rand(2,9); } while(n === s1.n);
+    s1.n = n;
+    $("s1tray").innerHTML = boxHTML().repeat(n);
+    $("s1tray").setAttribute("aria-label", n + " boxes");
+    const opts = shuffle([n*10, n, (n+1)*10]);
+    $("s1choices").innerHTML = "";
+    opts.forEach(v=>{
+      const b = document.createElement("button");
+      b.className = "btn"; b.textContent = v;
+      b.onclick = ()=>{
+        if(v === n*10){
+          tone(true); addStar();
+          say("s1fb", cheers[rand(0,4)] + " " + n + " boxes of 10 = " + n*10 + " cookies.", true);
+          [...$("s1choices").children].forEach(c=>c.disabled=true);
+          s1.round++;
+          setTimeout(()=>{
+            if(s1.round < s1.total){ $("s1p").textContent=(s1.round+1)+" of "+s1.total; say("s1fb","",true); s1New(); }
+            else { $("s1done").classList.add("show"); $("s1p").textContent="Done ⭐"; }
+          }, 1300);
+        } else {
+          tone(false); b.classList.remove("wrong"); void b.offsetWidth; b.classList.add("wrong");
+          say("s1fb", v === n ? "That’s how many boxes. Count the cookies by 10s: 10, 20, 30…" : "Point at each box and count by 10s. Try again!", false);
+        }
+      };
+      $("s1choices").appendChild(b);
+    });
+  }
+
+  /* ---------- Station 2 ---------- */
+  const s2 = {round:0, total:3, target:0, t:0, o:0};
+  function s2Draw(){
+    $("s2tray").innerHTML = orderHTML(s2.t, s2.o) || '<span style="color:var(--soft)">Empty tray. Tap + to add boxes and cookies.</span>';
+    $("s2t").textContent = s2.t; $("s2o").textContent = s2.o;
+    $("s2pack").hidden = s2.o < 10;
+    $("s2tm").disabled = s2.t === 0; $("s2om").disabled = s2.o === 0;
+    $("s2tp").disabled = s2.t >= 9; $("s2op").disabled = s2.o >= 19;
+  }
+  function s2New(){
+    let t; do { t = rand(21,89); } while(t % 10 === 0 || t === s2.target);
+    s2.target = t; s2.t = 0; s2.o = 0;
+    $("s2target").textContent = t; $("s2ship").disabled = false; say("s2fb","",true); s2Draw();
+  }
+  $("s2tp").onclick = ()=>{ s2.t++; s2Draw(); };
+  $("s2tm").onclick = ()=>{ s2.t--; s2Draw(); };
+  $("s2op").onclick = ()=>{ s2.o++; s2Draw(); };
+  $("s2om").onclick = ()=>{ s2.o--; s2Draw(); };
+  $("s2pack").onclick = ()=>{ if(s2.o>=10 && s2.t<9){ s2.o-=10; s2.t++; s2Draw(); say("s2fb","Nice! 10 loose cookies became 1 box.",true);} };
+  $("s2ship").onclick = ()=>{
+    const have = s2.t*10 + s2.o;
+    if(have === s2.target && s2.o < 10){
+      tone(true); addStar(); $("s2ship").disabled = true;
+      say("s2fb", cheers[rand(0,4)] + " " + s2.t + " tens and " + s2.o + " ones make " + s2.target + ".", true);
+      s2.round++;
+      setTimeout(()=>{
+        if(s2.round < s2.total){ $("s2p").textContent=(s2.round+1)+" of "+s2.total; s2New(); }
+        else { $("s2done").classList.add("show"); $("s2p").textContent="Done ⭐"; }
+      }, 1500);
+    } else if(have === s2.target){
+      tone(false); say("s2fb","Right number! But you have 10 or more loose cookies. Pack them into a box first.",false);
+    } else {
+      tone(false);
+      const tens = Math.floor(s2.target/10), ones = s2.target%10;
+      say("s2fb", "You packed " + have + ". " + s2.target + " needs " + tens + " boxes and " + ones + " loose cookies.", false);
+    }
+  };
+
+  /* ---------- Station 3 ---------- */
+  const s3 = {round:0, total:3, a:0, b:0, typed:""};
+  function s3New(){
+    let a,b;
+    if(s3.round < 2){
+      const ao = rand(1,5), bo = rand(1, 9-ao);
+      a = rand(1,4)*10 + ao; b = rand(1,4)*10 + bo;
+    } else {
+      const ao = rand(5,9), bo = rand(10-ao, 9);
+      a = rand(1,4)*10 + ao; b = rand(1,4)*10 + bo;
+    }
+    s3.a=a; s3.b=b; s3.typed="";
+    $("s3a").textContent = a; $("s3b").textContent = b;
+    $("s3atray").innerHTML = orderHTML(Math.floor(a/10), a%10);
+    $("s3btray").innerHTML = orderHTML(Math.floor(b/10), b%10);
+    $("s3ans").innerHTML = "&nbsp;";
+    say("s3fb", s3.round===2 ? "Tricky one! Too many loose cookies? Pack 10 into a new box." : "", true);
+  }
+  function s3Key(k){
+    if(k==="⌫"){ s3.typed = s3.typed.slice(0,-1); }
+    else if(k==="✓"){ return s3Check(); }
+    else if(s3.typed.length < 3){ s3.typed += k; }
+    $("s3ans").innerHTML = s3.typed || "&nbsp;";
+  }
+  function s3Check(){
+    if(!s3.typed) return;
+    const sum = s3.a + s3.b;
+    if(parseInt(s3.typed,10) === sum){
+      tone(true); addStar();
+      say("s3fb", cheers[rand(0,4)] + " " + s3.a + " + " + s3.b + " = " + sum + ".", true);
+      s3.round++;
+      setTimeout(()=>{
+        if(s3.round < s3.total){ $("s3p").textContent=(s3.round+1)+" of "+s3.total; s3New(); }
+        else { $("s3done").classList.add("show"); $("s3p").textContent="Done ⭐"; }
+      }, 1500);
+    } else {
+      tone(false);
+      const bt = Math.floor(s3.a/10)+Math.floor(s3.b/10), lo = s3.a%10 + s3.b%10;
+      say("s3fb", "Not yet. Boxes: " + bt + " (that’s " + bt*10 + "). Loose cookies: " + lo + ". Put them together!", false);
+      s3.typed=""; $("s3ans").innerHTML="&nbsp;";
+    }
+  }
+  ["1","2","3","4","5","6","7","8","9","⌫","0","✓"].forEach(k=>{
+    const b = document.createElement("button");
+    b.className = "btn" + (k==="✓" ? " go" : "");
+    b.textContent = k;
+    b.setAttribute("aria-label", k==="⌫" ? "Erase" : k==="✓" ? "Check answer" : k);
+    b.onclick = ()=>s3Key(k);
+    $("s3pad").appendChild(b);
+  });
+
+  /* ---------- Station 4 ---------- */
+  const s4 = {round:0, total:4};
+  function s4New(){
+    let a,b;
+    if(s4.round % 2 === 1){ const t = rand(2,8); a = t*10 + rand(0,9); do { b = t*10 + rand(0,9); } while(b===a); }
+    else { a = rand(12,95); do { b = rand(12,95); } while(Math.floor(a/10)===Math.floor(b/10)); }
+    // a sneaky pair: small tens with big ones vs big tens with small ones
+    if(s4.round === 2){ const t = rand(2,6); a = t*10 + 9; b = (t+1)*10 + 1; }
+    const pair = shuffle([a,b]);
+    $("s4plates").innerHTML = "";
+    pair.forEach(n=>{
+      const p = document.createElement("button");
+      p.className = "plate";
+      p.setAttribute("aria-label", n + " cookies");
+      p.innerHTML = '<div class="num">' + n + '</div><div class="tray">' + orderHTML(Math.floor(n/10), n%10) + '</div>';
+      p.onclick = ()=>{
+        const big = Math.max(a,b), small = Math.min(a,b);
+        if(n === big){
+          tone(true); addStar(); p.classList.add("right");
+          [...$("s4plates").children].forEach(c=>c.disabled=true);
+          say("s4fb", cheers[rand(0,4)] + " " + big + " is more than " + small + ".", true);
+          s4.round++;
+          setTimeout(()=>{
+            if(s4.round < s4.total){ $("s4p").textContent=(s4.round+1)+" of "+s4.total; say("s4fb","",true); s4New(); }
+            else { $("s4done").classList.add("show"); $("s4p").textContent="Done ⭐"; }
+          }, 1400);
+        } else {
+          tone(false); p.classList.remove("wrong"); void p.offsetWidth; p.classList.add("wrong");
+          say("s4fb", Math.floor(a/10)===Math.floor(b/10)
+            ? "Same number of boxes! Now look at the loose cookies."
+            : "Count the boxes first. More boxes means more cookies!", false);
+        }
+      };
+      $("s4plates").appendChild(p);
+    });
+  }
+
+  function startAll(){
+    stars = 0; $("stars").textContent = "⭐ 0"; $("final").textContent = "0";
+    $("finalmsg").textContent = "Finish the stations to fill your badge. There are 14 stars to win.";
+    Object.assign(s1,{round:0,n:0}); Object.assign(s2,{round:0}); Object.assign(s3,{round:0}); Object.assign(s4,{round:0});
+    ["s1","s2","s3","s4"].forEach(id=>{ $(id+"done").classList.remove("show"); say(id+"fb","",true); });
+    $("s1p").textContent="1 of 4"; $("s2p").textContent="1 of 3"; $("s3p").textContent="1 of 3"; $("s4p").textContent="1 of 4";
+    s1New(); s2New(); s3New(); s4New();
+  }
+  // Turns for more than one kid
+  const KEY = "moonbakery-board";
+  let board = [];
+  try { board = JSON.parse(localStorage.getItem(KEY)) || []; } catch(e) { board = []; }
+  const nm = () => $("name").value.trim();
+  function saveBoard(){ try { localStorage.setItem(KEY, JSON.stringify(board)); } catch(e) {} }
+  function drawBoard(){
+    $("board").hidden = board.length === 0;
+    $("boardlist").innerHTML = "";
+    board.forEach(r=>{ const li = document.createElement("li"); li.textContent = r.name + ": ⭐ " + r.stars + " of 14"; $("boardlist").appendChild(li); });
+  }
+  $("name").addEventListener("input", ()=>{ $("bakerName").textContent = nm() || "Head Baker"; });
+  let armed = false, armTimer;
+  function newBaker(btn){
+    if(stars > 0 && !armed){
+      armed = true; const old = btn.textContent; btn.textContent = "Tap again to switch";
+      clearTimeout(armTimer); armTimer = setTimeout(()=>{ armed = false; btn.textContent = old; }, 3000);
+      return;
+    }
+    armed = false; clearTimeout(armTimer);
+    $("newbaker").textContent = "New baker"; $("reset").textContent = "Next baker’s turn";
+    if(stars > 0){ board.push({ name: nm() || ("Baker " + (board.length + 1)), stars }); saveBoard(); drawBoard(); }
+    $("name").value = ""; $("bakerName").textContent = "Head Baker";
+    startAll();
+    window.scrollTo({ top:0, behavior:"smooth" });
+    setTimeout(()=>{ try { $("name").focus({ preventScroll:true }); } catch(e) {} }, 400);
+  }
+  $("newbaker").onclick = ()=>newBaker($("newbaker"));
+  $("reset").onclick = ()=>newBaker($("reset"));
+  $("clearboard").onclick = ()=>{ board = []; saveBoard(); drawBoard(); };
+  drawBoard();
+  startAll();
+})();
+</script>
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const GKEY = "moonbakery-guide";
+  let G = {mats:{}, steps:{}, week:{}, checks:{}, k1:"", k2:"", lvl:1};
+  try { Object.assign(G, JSON.parse(localStorage.getItem(GKEY)) || {}); } catch(e) {}
+  const save = () => { try { localStorage.setItem(GKEY, JSON.stringify(G)); } catch(e) {} };
+
+  /* tabs */
+  function show(which){
+    const g = which === "guide";
+    $("play").hidden = g; $("guide").hidden = !g;
+    $("tabPlay").classList.toggle("on", !g); $("tabGuide").classList.toggle("on", g);
+    $("tabPlay").setAttribute("aria-selected", !g); $("tabGuide").setAttribute("aria-selected", g);
+    document.querySelector(".barr").style.visibility = g ? "hidden" : "visible";
+    window.scrollTo({top:0});
+  }
+  $("tabPlay").onclick = () => show("play");
+  $("tabGuide").onclick = () => show("guide");
+  document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => show(b.dataset.go));
+  if(location.hash === "#guide") show("guide");
+
+  function chime(){
+    try{
+      const c = new (window.AudioContext||window.webkitAudioContext)();
+      [784,659,784,988].forEach((f,i)=>{ const o=c.createOscillator(), g=c.createGain(); o.type="triangle"; o.frequency.value=f;
+        g.gain.setValueAtTime(.2,c.currentTime+i*.18); g.gain.exponentialRampToValueAtTime(.001,c.currentTime+i*.18+.3);
+        o.connect(g).connect(c.destination); o.start(c.currentTime+i*.18); o.stop(c.currentTime+i*.18+.35); });
+    }catch(e){}
+  }
+
+  function checklist(el, key, items){
+    el.innerHTML = "";
+    items.forEach((it,i)=>{
+      const l = document.createElement("label");
+      l.className = "chk" + (G[key][i] ? " is-done" : "");
+      l.innerHTML = '<input type="checkbox"' + (G[key][i] ? " checked" : "") + '><span>' + it + '</span>';
+      l.querySelector("input").onchange = e => { G[key][i] = e.target.checked; l.classList.toggle("is-done", e.target.checked); save(); };
+      el.appendChild(l);
+    });
+  }
+
+  checklist($("mats"), "mats", [
+    "About 100 small counters per kid: Cheerios, dried beans, pennies or LEGO bricks",
+    "Egg cartons cut down to 10 cups, about 9 per kid (these are the boxes)",
+    "Two paper plates per kid",
+    "About 20 number cards with numbers from 11 to 99",
+    "A whiteboard or paper and a marker",
+    "This app open on the Play screen"
+  ]);
+
+  const vocab = [
+    ["Ones","Single things you count one at a time","Loose cookies"],
+    ["Tens","A group of exactly 10","One full box"],
+    ["Digit","One of the symbols 0–9 in a number","The 4 and the 7 in 47"],
+    ["Place value","What a digit is worth because of where it sits","The 4 in 47 means 4 boxes"],
+    ["Trade","Swap 10 ones for 1 ten","Pack 10 loose cookies into a box"],
+    ["Sum","The answer when you add","Everything in the bag"],
+    ["Greater than","Bigger","The plate the hungry moon wants"]
+  ];
+  vocab.forEach(v=>{
+    const b = document.createElement("button");
+    b.className = "vcard";
+    const front = "<b>" + v[0] + "</b>" + v[1], back = "<b>" + v[0] + "</b>At the bakery: " + v[2];
+    b.innerHTML = front;
+    b.onclick = () => { const f = b.classList.toggle("flip"); b.innerHTML = f ? back : front; };
+    $("vocab").appendChild(b);
+  });
+
+  const steps = [
+    {t:"Warm-up: count and clap", m:5, say:"Let’s count by 10s and clap on every number!",
+     d:["Count by 10s from 10 to 100, clapping on each number.","Count back down from 100 to 10.","Count by 10s starting at 3: 3, 13, 23… Ask what changes and what stays the same. (Only the tens digit changes.)"]},
+    {t:"The bakery problem", m:5, say:"How many cookies are on the table? Is there a faster way than counting one at a time?",
+     d:["Dump about 34 counters on the table.","Let them try counting one by one.","Steer them toward making groups of 10."]},
+    {t:"Boxes and loose cookies", m:10, say:"A full box always has 10. That’s a ten. Cookies that don’t fit in a box are ones.",
+     d:["Fill egg cartons with 10 counters each.","Build 34 together: 3 boxes and 4 loose. Write 34 and point to each digit: “3 boxes is 30, 4 loose is 4.”","Repeat with 52 and 18. Have them say each one as “5 tens and 2 ones.”"]},
+    {t:"Fill the orders", m:10, say:"A customer wants this many cookies. Can you pack the order?",
+     d:["Draw a number card. Each kid builds it with cartons and counters and says it out loud. Do 5 or 6 cards.","Trading: give them 2 boxes and 13 loose. Ask how many. Pack 10 loose into a new box to show 3 tens and 3 ones, or 33.","Adding: put 21 on one plate and 15 on another. Slide them together. Count the boxes (3), then the loose (6): 36."]},
+    {t:"Play Moon Bakery", m:15, say:"Time to work at the Moon Bakery!",
+     d:["Switch to the Play screen. One kid types their name and plays all four stations.","The other kid builds each problem with real cartons at the same time.","Tap Next baker’s turn and switch jobs."], play:true},
+    {t:"Wrap-up", m:5, say:"Show me how you’d make 65.",
+     d:["Ask each kid to teach you one thing they learned.","Ask: “Which is more, 6 boxes or 60 loose cookies?” (They’re the same.)","Celebrate the stars on the bakers list."]}
+  ];
+
+  let tm = {i:-1, left:0, id:null};
+  function fmt(s){ return Math.floor(s/60) + ":" + String(s%60).padStart(2,"0"); }
+  function stopTimer(){ if(tm.id){ clearInterval(tm.id); tm.id=null; } document.querySelectorAll(".timer").forEach((b,i)=>{ b.classList.remove("running"); b.textContent = "Start " + fmt(steps[i].m*60) + " timer"; }); tm.i=-1; }
+  function progress(){
+    const n = steps.filter((s,i)=>G.steps[i]).length;
+    $("gfill").style.width = (n/steps.length*100) + "%";
+    $("gpct").textContent = n + " of " + steps.length + " steps done";
+  }
+  steps.forEach((s,i)=>{
+    const c = document.createElement("article");
+    c.className = "stepcard" + (G.steps[i] ? " is-done" : "");
+    c.innerHTML = '<div class="sthead"><span class="step">' + (i+1) + '</span><h3>' + s.t + '</h3><span class="mins">' + s.m + ' min</span></div>' +
+      '<p class="sayit"><strong>Say:</strong> “' + s.say + '”</p><ul>' + s.d.map(x=>"<li>"+x+"</li>").join("") + '</ul>' +
+      '<div class="strow"><button class="btn small timer">Start ' + fmt(s.m*60) + ' timer</button>' +
+      (s.play ? '<button class="btn small go" data-play>Open the game</button>' : '') +
+      '<label class="donebox"><input type="checkbox"' + (G.steps[i] ? " checked" : "") + '> Done</label></div>';
+    const tb = c.querySelector(".timer");
+    tb.onclick = () => {
+      if(tm.i === i && tm.id){ clearInterval(tm.id); tm.id=null; tb.textContent = "Resume " + fmt(tm.left); tb.classList.remove("running"); return; }
+      if(tm.i !== i){ stopTimer(); tm.i = i; tm.left = s.m*60; }
+      tb.classList.add("running");
+      const tick = () => { tb.textContent = fmt(tm.left) + " left, tap to pause"; };
+      tick();
+      tm.id = setInterval(()=>{ tm.left--; if(tm.left <= 0){ clearInterval(tm.id); tm.id=null; tb.classList.remove("running"); tb.textContent = "Time’s up! Restart"; tm.i=-1; chime(); } else tick(); }, 1000);
+    };
+    const pb = c.querySelector("[data-play]"); if(pb) pb.onclick = () => show("play");
+    c.querySelector(".donebox input").onchange = e => { G.steps[i] = e.target.checked; c.classList.toggle("is-done", e.target.checked); save(); progress(); };
+    $("steps").appendChild(c);
+  });
+  progress();
+
+  const levels = [
+    ["Count by 10s while pointing at a 100 chart","Numbers under 50, with cartons already filled","No trading: the ones add up to 9 or less","Keep real cartons next to the screen","“Show me 40. Now add one more box.”"],
+    ["Count by 10s to 100 and back down","Numbers from 11 to 99 from the card pile","Two easy problems, then one with a trade","Play all four stations","“What does the 7 in 74 mean?”"],
+    ["Count back by 10s from any number, like 87, 77, 67","Start with a loose pile and pack it themselves","Add three orders at once","Say the answer before tapping and explain why","“Make 52 two different ways.” (5 tens and 2 ones, or 4 tens and 12 ones)"]
+  ];
+  const phases = ["Warm-up","Hands-on","Adding","Game","Challenge question"];
+  function drawLvl(){
+    document.querySelectorAll("#lvl button").forEach(b=>b.classList.toggle("on", +b.dataset.l === G.lvl));
+    $("lvlbody").innerHTML = phases.map((p,i)=>"<div><dt>"+p+"</dt><dd>"+levels[G.lvl][i]+"</dd></div>").join("");
+  }
+  document.querySelectorAll("#lvl button").forEach(b=>b.onclick=()=>{ G.lvl = +b.dataset.l; save(); drawLvl(); });
+  drawLvl();
+
+  const qs = [
+    ["Build 63 with boxes and loose counters.","6 boxes and 3 loose"],
+    ["What does the 7 in 74 mean?","7 tens, or 70"],
+    ["I have 2 boxes and 15 loose. How many is that?","35"],
+    ["Add 32 + 24 and tell me how.","5 tens and 6 ones, 56"],
+    ["Which is bigger, 39 or 41? How do you know?","41, because it has more tens"]
+  ];
+  const states = ["", "yes", "no"];
+  function drawCheck(){
+    const names = [G.k1 || "Kid 1", G.k2 || "Kid 2"];
+    $("checkin").innerHTML = "";
+    qs.forEach((q,qi)=>{
+      const d = document.createElement("div"); d.className = "cq";
+      d.innerHTML = "<p>" + q[0] + "</p><small>Answer: " + q[1] + "</small><div class='cqb'></div>";
+      [0,1].forEach(k=>{
+        const key = k + "-" + qi, st = G.checks[key] || "";
+        const b = document.createElement("button");
+        b.className = "mark " + st;
+        const label = () => names[k] + (G.checks[key]==="yes" ? ": got it" : G.checks[key]==="no" ? ": not yet" : "");
+        b.textContent = label();
+        b.onclick = () => { const cur = states.indexOf(G.checks[key] || ""); G.checks[key] = states[(cur+1)%3]; b.className = "mark " + G.checks[key]; b.textContent = label(); save(); };
+        d.querySelector(".cqb").appendChild(b);
+      });
+      $("checkin").appendChild(d);
+    });
+  }
+  $("k1").value = G.k1; $("k2").value = G.k2;
+  $("k1").oninput = e => { G.k1 = e.target.value.trim(); save(); drawCheck(); };
+  $("k2").oninput = e => { G.k2 = e.target.value.trim(); save(); drawCheck(); };
+  drawCheck();
+
+  const stuck = [
+    ["Counts boxes as ones","Says 5 boxes is 5 cookies.","“How many cookies are in one box? Count by 10s with me.”"],
+    ["Flips the digits","Writes 47 as 74.","“Boxes go first, then loose cookies.”"],
+    ["Leaves 10 or more ones","Calls 3 tens and 12 ones “312.”","“Can 10 loose cookies make a box? Pack them.”"],
+    ["Compares the ones first","Picks 29 over 31 because 9 is bigger.","“Look at the boxes first. Who has more boxes?”"],
+    ["Adds every digit together","Says 23 + 14 = 10.","“Add boxes to boxes, and loose to loose.”"]
+  ];
+  $("stuck").innerHTML = stuck.map(s=>"<details class='stk'><summary>"+s[0]+"</summary><p>Example: "+s[1]+"</p><p><strong>Try saying:</strong> "+s[2]+"</p></details>").join("");
+
+  checklist($("week"), "week", [
+    "<b>Day 2:</b> Play Moon Bakery again, then a speed round: you call a number, they pack it as fast as they can.",
+    "<b>Day 3:</b> Grocery store tens: count things that come in packs of 10, like pencils or crackers, and write each total as tens and ones.",
+    "<b>Day 4:</b> Bakery shop: buy pretend cookies with dimes (tens) and pennies (ones). Every price is a two-digit number.",
+    "<b>Day 5:</b> Quiz day: ask the check-in questions again, then let them make up orders for you to pack."
+  ]);
+
+  let armedG = false;
+  $("guideReset").onclick = () => {
+    if(!armedG){ armedG = true; $("guideReset").textContent = "Tap again to clear all checkmarks"; setTimeout(()=>{ armedG=false; $("guideReset").textContent="Start the guide over"; }, 3000); return; }
+    const k1 = G.k1, k2 = G.k2;
+    G = {mats:{}, steps:{}, week:{}, checks:{}, k1, k2, lvl:1}; save(); location.reload();
+  };
+})();
+</script>
+</body>
+</html>

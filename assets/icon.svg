@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"><g transform="translate(0 0) scale(1)">
+  <defs>
+    <clipPath id="back"><rect x="-300" y="-300" width="600" height="300"/></clipPath>
+    <clipPath id="front"><rect x="-300" y="0" width="600" height="300"/></clipPath>
+    <clipPath id="pl"><circle cx="256" cy="262" r="118"/></clipPath>
+  </defs>
+  <g transform="translate(256 262) rotate(-18)"><g clip-path="url(#back)"><ellipse rx="196" ry="54" fill="none" stroke="#FFC93C" stroke-width="26"/></g></g>
+  <circle cx="256" cy="262" r="118" fill="#6EC6FF"/>
+  <g clip-path="url(#pl)">
+    <circle cx="300" cy="300" r="118" fill="#3E9FE0" opacity=".55"/>
+    <circle cx="212" cy="212" r="20" fill="#3E9FE0"/><circle cx="292" cy="196" r="11" fill="#3E9FE0"/><circle cx="196" cy="290" r="13" fill="#3E9FE0"/>
+  </g>
+  <g transform="translate(256 262) rotate(-18)"><g clip-path="url(#front)"><ellipse rx="196" ry="54" fill="none" stroke="#FFC93C" stroke-width="26"/></g></g>
+  <path d="M408 58 Q419.2 86.8 448 98 Q419.2 109.2 408 138 Q396.8 109.2 368 98 Q396.8 86.8 408 58Z" fill="#F27BA3"/><path d="M462 146 Q468.16 161.84 484 168 Q468.16 174.16 462 190 Q455.84 174.16 440 168 Q455.84 161.84 462 146Z" fill="#FFC93C"/>
+</g></svg>
