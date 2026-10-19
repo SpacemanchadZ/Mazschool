@@ -49,7 +49,9 @@
       if(xa || xb) doneT[k] = Math.max(xa, xb);
       if(on){ done[p[0]] = done[p[0]] || {}; done[p[0]][p[1]] = done[p[0]][p[1]] || {}; done[p[0]][p[1]][p[2]] = true; }
     });
-    const out = Object.assign({}, b, a, {users, stars, done, doneT, removed});
+    const fin = {};
+    [b, a].forEach(src => Object.keys(src.fin || {}).forEach(id => { const k = map(id); if(gone(k)) return; const t = fin[k] = fin[k] || {}; Object.keys(src.fin[id] || {}).forEach(w => { t[w] = Object.assign(t[w] || {}, src.fin[id][w]); }); }));
+    const out = Object.assign({}, b, a, {users, stars, done, doneT, removed, fin});
     let cur = a.current ? map(a.current) : null;
     if(!users.some(u => u.id === cur)) cur = users[0] ? users[0].id : null;
     out.current = cur;

@@ -29,6 +29,10 @@
   function total(id, prefix){ const s = D.stars[id] || {}; return Object.keys(s).filter(k=>!prefix || k.startsWith(prefix)).reduce((a,k)=>a+(s[k]||0),0); }
   const isDone = (s,w,id) => !!(D.done[id||uid()] && D.done[id||uid()][s] && D.done[id||uid()][s][w]);
   function toggleDone(s,w){ const id = uid(); D.done[id] = D.done[id] || {}; D.done[id][s] = D.done[id][s] || {}; if(D.done[id][s][w]) delete D.done[id][s][w]; else D.done[id][s][w] = true; D.doneT = D.doneT || {}; D.doneT[id+"|"+s+"|"+w] = Date.now(); save(); }
+  function markDone(s,w){ if(!me() || isDone(s,w)) return false; const id = uid(); D.done[id] = D.done[id] || {}; D.done[id][s] = D.done[id][s] || {}; D.done[id][s][w] = true; D.doneT = D.doneT || {}; D.doneT[id+"|"+s+"|"+w] = Date.now(); save(); return true; }
+  function finPart(s,w,part){ if(!me()) return null; const id = uid(); D.fin = D.fin || {}; D.fin[id] = D.fin[id] || {}; const k = s+":"+w; const f = D.fin[id][k] = D.fin[id][k] || {}; f[part] = 1; save(); return f; }
+  const finOf = (s,w) => ((D.fin || {})[uid()] || {})[s+":"+w] || {};
+  (function backfill(){ if(D.bfDone1) return; D.doneT = D.doneT || {}; Object.keys(D.stars || {}).forEach(id => { const st = D.stars[id] || {}; Object.keys(st).forEach(k => { const m = k.match(/^(math|reading|science):(\d+):act$/); if(!m || !(st[k] > 0) || !(st[m[1]+":"+m[2]+":quiz"] > 0)) return; if(D.doneT[id+"|"+m[1]+"|"+m[2]]) return; D.done[id] = D.done[id] || {}; D.done[id][m[1]] = D.done[id][m[1]] || {}; if(!D.done[id][m[1]][m[2]]){ D.done[id][m[1]][m[2]] = true; D.doneT[id+"|"+m[1]+"|"+m[2]] = Date.now(); } }); }); D.bfDone1 = true; save(); })();
 
   function weeks(s){ const out = []; let n = 0; C[s].units.forEach((u,ui)=>u.w.forEach(w=>{ n++; out.push({n, unit:u.t, ui, title:w[0], goal:w[1], mat:w[2], steps:w[3], qs:w[4], extra:w[5]||{}}); })); return out; }
   const nextWeek = s => { const all = weeks(s); return all.find(w=>!isDone(s,w.n)) || all[all.length-1]; };
@@ -178,10 +182,11 @@
       el.querySelector("#again").onclick = start;
       if(earned === rounds.length) tone(true);
       updateWeekStars && updateWeekStars();
+      weekCheck && weekCheck("act");
     }
     start();
   }
-  let updateWeekStars = null;
+  let updateWeekStars = null, weekCheck = null;
   function teacherPlan(s, w, wn, QS){
     const u = window.TEACHER.units[s][w.ui];
     return '<section class="card tplan"><div class="tp-top"><div><span class="kicker">Teacher plan · '+C[s].name+' · Week '+wn+' · Unit '+(w.ui+1)+': '+esc(w.unit)+'</span><h2>'+esc(w.title)+'</h2><p class="goal"><b>Goal:</b> '+esc(w.goal)+'</p></div><button class="btn ghost small" onclick="window.print()">Print plan</button></div>' +
@@ -254,17 +259,18 @@
     updateWeekStars();
     main.querySelectorAll(".steps input").forEach(cb=>cb.onchange=()=>cb.parentElement.classList.toggle("is-done",cb.checked));
     practice(document.getElementById("act"), s, wn);
-    let quizStars = 0;
+    let quizStars = 0; const qAll = main.querySelectorAll(".q").length; let qAnswered = 0;
     main.querySelectorAll(".q").forEach(qe=>{
       const fbq = qe.querySelector(".qfb"); let missedQ = false;
       qe.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
-        if(b.dataset.ok === "1"){ b.classList.add("right"); qe.querySelectorAll(".opt").forEach(x=>x.disabled=true); tone(true); if(!missedQ){ quizStars++; setBest(s+":"+wn+":quiz", quizStars); updateWeekStars(); } fbq.textContent = missedQ ? "That’s it!" : "Correct! +1 ⭐"; fbq.className="qfb ok"; }
+        if(b.dataset.ok === "1"){ b.classList.add("right"); qe.querySelectorAll(".opt").forEach(x=>x.disabled=true); tone(true); qAnswered++; if(!missedQ){ quizStars++; setBest(s+":"+wn+":quiz", quizStars); updateWeekStars(); } if(qAnswered === qAll) weekCheck("quiz"); fbq.textContent = missedQ ? "That’s it!" : "Correct! +1 ⭐"; fbq.className="qfb ok"; }
         else { missedQ = true; tone(false); b.classList.remove("wrong"); void b.offsetWidth; b.classList.add("wrong"); fbq.textContent = "Not yet. Try another answer."; fbq.className="qfb no"; }
       });
     });
     const md = document.getElementById("markDone");
     const paint = () => { const d = isDone(s,wn); md.textContent = d ? "Week done ✓" : "Mark this week done"; md.className = "btn" + (d ? " done" : ""); document.getElementById("doneNote").textContent = d ? "Tap again to undo." : ""; };
     md.onclick = () => { toggleDone(s,wn); paint(); };
+    weekCheck = part => { const f = finPart(s,wn,part); if(!f) return; if(f.act && f.quiz && markDone(s,wn)){ paint(); document.getElementById("doneNote").textContent = "🎉 Week "+wn+" done! It’s checked off on the "+C[s].name+" page."; tone(true); } else if(!isDone(s,wn)){ document.getElementById("doneNote").textContent = f.act && !f.quiz ? "Practice done! Finish the quick check to complete the week." : !f.act && f.quiz ? "Quick check done! Finish the practice game to complete the week." : ""; } };
     paint();
   }
 
@@ -335,4 +341,4 @@
     render();
   }
 })();
-(function(){ var r = document.body.dataset.root || ""; var sc = document.createElement("script"); sc.src = r + "assets/sync.js?v=20261019f"; document.body.appendChild(sc); })();
+(function(){ var r = document.body.dataset.root || ""; var sc = document.createElement("script"); sc.src = r + "assets/sync.js?v=20261019g"; document.body.appendChild(sc); })();
