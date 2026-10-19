@@ -28,7 +28,7 @@
   function setBest(key, n){ const id = uid(); D.stars[id] = D.stars[id] || {}; if(n > (D.stars[id][key]||0)){ D.stars[id][key] = n; save(); refreshChip(); return true; } return false; }
   function total(id, prefix){ const s = D.stars[id] || {}; return Object.keys(s).filter(k=>!prefix || k.startsWith(prefix)).reduce((a,k)=>a+(s[k]||0),0); }
   const isDone = (s,w,id) => !!(D.done[id||uid()] && D.done[id||uid()][s] && D.done[id||uid()][s][w]);
-  function toggleDone(s,w){ const id = uid(); D.done[id] = D.done[id] || {}; D.done[id][s] = D.done[id][s] || {}; if(D.done[id][s][w]) delete D.done[id][s][w]; else D.done[id][s][w] = true; save(); }
+  function toggleDone(s,w){ const id = uid(); D.done[id] = D.done[id] || {}; D.done[id][s] = D.done[id][s] || {}; if(D.done[id][s][w]) delete D.done[id][s][w]; else D.done[id][s][w] = true; D.doneT = D.doneT || {}; D.doneT[id+"|"+s+"|"+w] = Date.now(); save(); }
 
   function weeks(s){ const out = []; let n = 0; C[s].units.forEach((u,ui)=>u.w.forEach(w=>{ n++; out.push({n, unit:u.t, ui, title:w[0], goal:w[1], mat:w[2], steps:w[3], qs:w[4], extra:w[5]||{}}); })); return out; }
   const nextWeek = s => { const all = weeks(s); return all.find(w=>!isDone(s,w.n)) || all[all.length-1]; };
@@ -46,7 +46,7 @@
   document.body.prepend(head);
   function refreshChip(){ const c = document.getElementById("whoChip"); if(!c) return; const u = me(); c.innerHTML = u ? '<span class="av">'+esc(u.name[0].toUpperCase())+'</span>'+esc(u.name)+' <b>⭐ '+total(u.id)+'</b>' : '👤 Who’s learning?'; c.classList.toggle("empty", !u); }
   refreshChip();
-  window.MAZ_API = { best, setBest, me, refreshChip, speak:(t)=>{ try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.rate = .9; speechSynthesis.speak(u); } catch(e) {} } };
+  window.MAZ_API = { best, setBest, me, refreshChip, root, reload: () => { try { const n = JSON.parse(localStorage.getItem(DKEY)); if(n && Array.isArray(n.users)){ D = n; D.stars = D.stars || {}; D.done = D.done || {}; refreshChip(); } } catch(e) {} }, speak:(t)=>{ try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.rate = .9; speechSynthesis.speak(u); } catch(e) {} } };
   const foot = document.createElement("footer");
   foot.className = "site-foot";
   foot.innerHTML = '<img src="'+root+'assets/icon.svg" alt=""><span>© 2026 MAZ School</span>';
@@ -305,8 +305,8 @@
       '<section class="card" style="margin-top:18px"><h2>Keep stars safe</h2><p>Stars are saved in this browser on this device. Playing, refreshing or closing the page never resets them. Clearing your browser’s data would erase them, so download a backup now and then. Restore it here, or on another device, to bring the stars back.</p><div class="lbtns"><button class="btn" id="dl">Download backup</button><label class="btn ghost" for="ul">Restore backup</label><input type="file" id="ul" accept=".json,application/json" hidden></div><p class="kicker" id="bkMsg"></p></section>';
       main.innerHTML = h;
       main.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>{ D.current = b.dataset.pick; save(); refreshChip(); render(); });
-      main.querySelectorAll("[data-ren]").forEach(b=>b.onclick=()=>{ const u = D.users.find(x=>x.id===b.dataset.ren); const art = b.closest(".learner"); const h2 = art.querySelector("h2"); h2.innerHTML = '<input class="ren" maxlength="20" value="'+esc(u.name)+'">'; const inp = h2.querySelector("input"); inp.focus(); inp.select(); const done = () => { const v = inp.value.trim(); if(v) u.name = v; save(); refreshChip(); render(); }; inp.onkeydown = e => { if(e.key==="Enter") done(); }; inp.onblur = done; });
-      main.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{ const id = b.dataset.del; if(armed !== id){ armed = id; render(); setTimeout(()=>{ if(armed===id){ armed=null; render(); } }, 3000); return; } armed = null; D.users = D.users.filter(u=>u.id!==id); delete D.stars[id]; delete D.done[id]; if(D.current===id) D.current = D.users[0] ? D.users[0].id : null; save(); refreshChip(); render(); });
+      main.querySelectorAll("[data-ren]").forEach(b=>b.onclick=()=>{ const u = D.users.find(x=>x.id===b.dataset.ren); const art = b.closest(".learner"); const h2 = art.querySelector("h2"); h2.innerHTML = '<input class="ren" maxlength="20" value="'+esc(u.name)+'">'; const inp = h2.querySelector("input"); inp.focus(); inp.select(); const done = () => { const v = inp.value.trim(); if(v && v !== u.name){ u.name = v; u.t = Date.now(); } save(); refreshChip(); render(); }; inp.onkeydown = e => { if(e.key==="Enter") done(); }; inp.onblur = done; });
+      main.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{ const id = b.dataset.del; if(armed !== id){ armed = id; render(); setTimeout(()=>{ if(armed===id){ armed=null; render(); } }, 3000); return; } armed = null; D.removed = (D.removed || []).concat(id); D.users = D.users.filter(u=>u.id!==id); delete D.stars[id]; delete D.done[id]; if(D.current===id) D.current = D.users[0] ? D.users[0].id : null; save(); refreshChip(); render(); });
       const add = () => { const v = document.getElementById("newName").value.trim(); if(!v) return; addUser(v); refreshChip(); render(); };
       document.getElementById("addBtn").onclick = add;
       document.getElementById("newName").onkeydown = e => { if(e.key==="Enter") add(); };
@@ -316,3 +316,4 @@
     render();
   }
 })();
+(function(){ var r = document.body.dataset.root || ""; var sc = document.createElement("script"); sc.src = r + "assets/sync.js?v=20261019c"; document.body.appendChild(sc); })();
