@@ -64,13 +64,27 @@
 
   /* ---------- header button ---------- */
   const st = document.createElement("style");
-  st.textContent = ".site-head .cloud{border:none;font:inherit;font-weight:800;font-size:.95rem;border-radius:999px;padding:7px 14px;cursor:pointer;background:var(--surface);color:var(--ink);box-shadow:0 3px 0 var(--line);margin-left:8px;white-space:nowrap}.site-head .cloud.in{background:var(--sun);color:#1F2A5C;box-shadow:0 3px 0 #D9A21B}.site-head .cloud.off{opacity:.75}.site-head .cloud.wait{opacity:.8}.syncnote{margin-top:14px}@media (max-width:560px){.site-head .cloud{font-size:.85rem;padding:6px 10px}}";
+  st.textContent = ".site-head .cloud{border:none;font:inherit;font-weight:800;font-size:.95rem;border-radius:999px;padding:7px 14px;cursor:pointer;background:var(--surface);color:var(--ink);box-shadow:0 3px 0 var(--line);margin-left:8px;white-space:nowrap}.site-head .cloud.in{background:var(--sun);color:#1F2A5C;box-shadow:0 3px 0 #D9A21B}.site-head .cloud.off{opacity:.75}.site-head .cloud.wait{opacity:.8}.syncnote{margin-top:14px}.syncwarn{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:center;background:#F27BA3;color:#1F2A5C;font-weight:800;padding:10px 16px;text-align:center}.syncwarn button{border:none;font:inherit;font-weight:800;border-radius:999px;padding:7px 14px;cursor:pointer}.syncwarn .go{background:#1F2A5C;color:#fff}.syncwarn .later{background:transparent;color:#1F2A5C;text-decoration:underline}.synctoast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#1F2A5C;color:#fff;font-weight:800;padding:12px 18px;border-radius:999px;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:50;transition:opacity .4s}.syncstat b{color:var(--ink)}@media (max-width:560px){.site-head .cloud{font-size:.85rem;padding:6px 10px}}";
   document.head.appendChild(st);
-  if(document.body.dataset.page === "stars"){
-    const main = document.getElementById("main");
-    const note = () => { if(!main || main.querySelector(".syncnote")) return; main.insertAdjacentHTML("beforeend", '<div class="card notice syncnote"><b>☁️ Same stars on every device.</b> Tap <b>Sign in to sync</b> at the top and choose the family Google account. Do this once on each device the boys use. After that, stars and finished weeks save to the cloud on their own.</div>'); };
-    note(); if(main) new MutationObserver(note).observe(main, {childList:true});
-  }
+  const page = document.body.dataset.page;
+  let statusHtml = '<b>☁️ Checking sync…</b>';
+  const paintStatus = () => { const main = document.getElementById("main"); if(page !== "stars" || !main) return; let el = main.querySelector(".syncnote"); if(!el){ main.insertAdjacentHTML("beforeend", '<div class="card notice syncnote syncstat"></div>'); el = main.querySelector(".syncnote"); } if(el.innerHTML !== statusHtml) el.innerHTML = statusHtml; };
+  const setStatus = h => { statusHtml = h; paintStatus(); };
+  if(page === "stars"){ const main = document.getElementById("main"); paintStatus(); if(main) new MutationObserver(paintStatus).observe(main, {childList:true}); }
+  let warn = null;
+  const showWarn = on => {
+    if(!on){ if(warn){ warn.remove(); warn = null; } return; }
+    if(warn || sessionStorage.getItem("maz-warn-hide")) return;
+    const head = document.querySelector(".site-head"); if(!head) return;
+    warn = document.createElement("div"); warn.className = "syncwarn"; warn.setAttribute("role", "status");
+    warn.innerHTML = '<span>⚠️ This device isn’t saving stars to the cloud. They’ll only show up on this device.</span><button class="go" type="button">Sign in to sync</button><button class="later" type="button">Not now</button>';
+    head.insertAdjacentElement("afterend", warn);
+    warn.querySelector(".go").onclick = () => btn.click();
+    warn.querySelector(".later").onclick = () => { sessionStorage.setItem("maz-warn-hide", "1"); showWarn(false); };
+  };
+  const toast = t => { const d = document.createElement("div"); d.className = "synctoast"; d.textContent = t; document.body.appendChild(d); setTimeout(() => { d.style.opacity = "0"; }, 3500); setTimeout(() => d.remove(), 4000); };
+  if(sessionStorage.getItem("maz-sync-toast")){ sessionStorage.removeItem("maz-sync-toast"); setTimeout(() => toast("⭐ Updated with new progress from another device"), 400); }
+  const fmtTime = d => d ? d.toLocaleString([], {weekday:"short", hour:"numeric", minute:"2-digit"}) : "";
   const chip = document.getElementById("whoChip");
   const btn = document.createElement("button");
   btn.className = "cloud"; btn.type = "button";
@@ -84,24 +98,25 @@
   Promise.all([load(SDK + "firebase-app-compat.js")])
     .then(() => Promise.all([load(SDK + "firebase-auth-compat.js"), load(SDK + "firebase-firestore-compat.js")]))
     .then(start)
-    .catch(() => show("☁️ Offline", "off", "Can’t reach the sync service. Progress is still saved on this device."));
+    .catch(() => { show("☁️ Offline", "off", "Can’t reach the sync service. Progress is still saved on this device."); setStatus("<b>☁️ Can’t reach the sync service right now.</b> Stars are still saved on this device and will sync once the internet is back."); });
 
   function start(){
     const app = firebase.initializeApp(CONFIG);
     const auth = firebase.auth(), db = firebase.firestore();
-    let user = null, ref = null, remote = null, unsub = null, timer = null, first = true;
+    let user = null, ref = null, remote = null, unsub = null, timer = null, first = true, lastSaved = null;
+    const syncedStatus = () => setStatus("<b>☁️ This device is syncing.</b> Signed in as <b>"+(user.email||"")+"</b>"+(lastSaved ? " · last saved "+fmtTime(lastSaved) : "")+". Stars and finished weeks update on every device signed in with this account.");
 
     function push(){
       if(!ref) return;
       const local = readLocal(); if(!local) return;
       const merged = merge(local, remote);
       if(canon(merged) !== canon(local)) { origSet(DKEY, JSON.stringify(merged)); window.MAZ_API && MAZ_API.reload && MAZ_API.reload(); }
-      if(remote && shared(merged) === shared(norm(remote))) { show("☁️ Synced", "on", "Signed in as " + user.email + ". Tap to sign out."); return; }
+      if(remote && shared(merged) === shared(norm(remote))) { show("☁️ Synced", "on", "Signed in as " + user.email + ". Tap to sign out."); syncedStatus(); return; }
       const c = Object.assign({}, merged); delete c.current;
       show("☁️ Saving…", "on wait", "Saving");
       ref.set({ data: JSON.stringify(c), updated: firebase.firestore.FieldValue.serverTimestamp(), by: user.email || "" })
-        .then(() => show("☁️ Synced", "on", "Signed in as " + user.email + ". Tap to sign out."))
-        .catch(() => show("☁️ Not synced", "off", "Couldn’t save to the cloud. Progress is still saved on this device."));
+        .then(() => { lastSaved = new Date(); show("☁️ Synced", "on", "Signed in as " + user.email + ". Tap to sign out."); syncedStatus(); })
+        .catch(() => { show("☁️ Not synced", "off", "Couldn’t save to the cloud. Progress is still saved on this device."); setStatus("<b>☁️ Couldn’t save to the cloud just now.</b> Stars are still saved on this device. It will try again the next time progress is saved."); });
     }
     const schedule = () => { clearTimeout(timer); timer = setTimeout(push, 1200); };
 
@@ -110,12 +125,13 @@
     auth.onAuthStateChanged(u => {
       if(unsub){ unsub(); unsub = null; }
       user = u; ref = null; remote = null; first = true;
-      if(!u){ show("☁️ Sign in to sync", "in", "Sign in with Google to keep stars the same on every device"); return; }
+      if(!u){ show("☁️ Sign in to sync", "in", "Sign in with Google to keep stars the same on every device"); showWarn(true); setStatus("<b>⚠️ This device isn’t syncing.</b> Stars earned here stay on this device only. Tap <b>Sign in to sync</b> at the top and choose the family Google account (the same one on every device)."); return; }
+      showWarn(false);
       show("☁️ Syncing…", "on wait", "Syncing");
       ref = db.collection("families").doc(u.uid);
       unsub = ref.onSnapshot(snap => {
         if(snap.metadata.hasPendingWrites) return;
-        try { remote = snap.exists ? JSON.parse(snap.data().data || "null") : null; } catch(e) { remote = null; }
+        try { remote = snap.exists ? JSON.parse(snap.data().data || "null") : null; const up = snap.exists && snap.data().updated; if(up && up.toDate) lastSaved = up.toDate(); } catch(e) { remote = null; }
         const local = readLocal();
         const merged = merge(local, remote);
         const changed = canon(merged) !== canon(norm(local));
@@ -126,10 +142,15 @@
           setTimeout(() => location.reload(), 900);
           return;
         }
-        first = false;
+        const wasFirst = first; first = false;
+        if(changed && !wasFirst){
+          const busy = page === "lesson" || page === "game" || (document.activeElement && /INPUT|TEXTAREA/.test(document.activeElement.tagName));
+          if(!busy){ sessionStorage.setItem("maz-sync-toast", "1"); setTimeout(() => location.reload(), 300); return; }
+          toast("⭐ New progress from another device");
+        }
         if(changed && window.MAZ_API && MAZ_API.reload) MAZ_API.reload();
         push();
-      }, () => show("☁️ Not synced", "off", "Couldn’t reach your family’s saved progress."));
+      }, () => { show("☁️ Not synced", "off", "Couldn’t reach your family’s saved progress."); setStatus("<b>☁️ Couldn’t reach your family’s saved progress.</b> Try reloading the page. Stars are still saved on this device."); });
     });
 
     btn.onclick = () => {
