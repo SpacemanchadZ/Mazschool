@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Moon Bakery Math | MAZ School</title>
-<link rel="icon" href="/assets/favicon-32.png">
-<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="icon" href="../assets/favicon-32.png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
@@ -209,17 +209,19 @@ details.notes ul{padding-left:1.2em;margin:8px 0}
 details.stk{background:var(--bg);border-radius:14px;padding:10px 12px;margin:8px 0}
 details.stk summary{font-weight:800;cursor:pointer}
 details.stk p{margin:6px 0 0;font-size:1.02rem}
+.homebtn{text-decoration:none;font-weight:800;font-size:1rem;background:#FFC93C;color:#1F2A5C;border-radius:999px;padding:4px 12px;box-shadow:0 3px 0 #D9A41C;white-space:nowrap}
+.bar{gap:8px;flex-wrap:wrap}
+@media (max-width:520px){.bar .tabs{order:3;width:100%;justify-content:center}.bar .tab{flex:1}}
 .homelink{display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:1rem;color:var(--soft);text-decoration:none;margin-bottom:10px}
 .homelink:hover{color:var(--ink)}
 </style>
 </head>
 <body>
 
-<div class="bar"><div class="tabs" role="tablist"><button class="tab on" id="tabPlay" role="tab" aria-selected="true">🍪 Play</button><button class="tab" id="tabGuide" role="tab" aria-selected="false">📋 Lesson guide</button></div><div class="barr"><span class="stars" id="stars">⭐ 0</span><button class="newb" id="newbaker">New baker</button></div></div>
+<div class="bar"><a class="homebtn" href="../index.html">🏠 Home</a><div class="tabs" role="tablist"><button class="tab on" id="tabPlay" role="tab" aria-selected="true">🍪 Play</button><button class="tab" id="tabGuide" role="tab" aria-selected="false">📋 Lesson guide</button></div><div class="barr"><span class="stars" id="stars">⭐ 0</span><button class="newb" id="newbaker">New baker</button></div></div>
 
 <main class="wrap" id="play">
   <header class="hero">
-    <a class="homelink" href="/"><img src="/assets/icon.svg" alt="" width="28" height="28">MAZ School home</a>
     <div class="moon" aria-hidden="true"></div>
     <h1>Moon Bakery Math</h1>
     <p>The moon bakers need a helper! Pack cookies into boxes of 10 and fill every order.</p>
