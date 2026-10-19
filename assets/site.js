@@ -38,6 +38,11 @@
   function weeks(s){ const out = []; let n = 0; C[s].units.forEach((u,ui)=>u.w.forEach(w=>{ n++; out.push({n, unit:u.t, ui, title:w[0], goal:w[1], mat:w[2], steps:w[3], qs:w[4], extra:w[5]||{}}); })); return out; }
   const nextWeek = s => { const all = weeks(s); return all.find(w=>!isDone(s,w.n)) || all[all.length-1]; };
   const doneCount = s => weeks(s).filter(w=>isDone(s,w.n)).length;
+  const weekProg = (s,w) => isDone(s,w) ? 1 : (partDone(s,w,"act") ? .5 : 0) + (partDone(s,w,"quiz") ? .5 : 0);
+  const progPct = s => weeks(s).reduce((a,w)=>a+weekProg(s,w.n),0) / 36 * 100;
+  const startedCount = s => weeks(s).filter(w=>{ const p = weekProg(s,w.n); return p > 0 && p < 1; }).length;
+  const progText = s => { const n = doneCount(s), st = startedCount(s); return n+" of 36 weeks done"+(st ? " · "+st+" started" : ""); };
+  const leftText = (s,w) => { if(isDone(s,w)) return ""; const a = partDone(s,w,"act"), q = partDone(s,w,"quiz"); return a && !q ? "Quick check left" : q && !a ? "Practice game left" : ""; };
 
   /* ---------- header with Home button and learner chip ---------- */
   const current = page === "home" ? "home" : page === "stars" ? "stars" : (page === "teacher" || page === "supplies") ? "teacher" : (page === "games" || page === "game") ? "games" : (document.body.dataset.subject || new URLSearchParams(location.search).get("s"));
@@ -51,7 +56,7 @@
   document.body.prepend(head);
   const okPhoto = v => typeof v === "string" && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(v);
   function av(u, size){ const cls = "av" + (size ? " " + size : ""); return okPhoto(u.photo) ? '<span class="'+cls+' ph"><img src="'+u.photo+'" alt=""></span>' : '<span class="'+cls+'">'+esc(u.name[0].toUpperCase())+'</span>'; }
-  (function(){ const st = document.createElement("style"); st.textContent = ".av.ph{overflow:hidden;padding:0;background:var(--line)}.av.ph img{width:100%;height:100%;object-fit:cover;display:block}.av.huge{width:76px;height:76px;font-size:2.1rem;flex:none}.photobtn{position:relative;border:none;background:none;padding:0;cursor:pointer;border-radius:50%;flex:none}.photobtn .cam{position:absolute;right:-2px;bottom:-2px;width:28px;height:28px;border-radius:50%;background:var(--sun);color:#1F2A5C;display:flex;align-items:center;justify-content:center;font-size:.95rem;box-shadow:0 2px 0 rgba(0,0,0,.2)}.photomsg{color:var(--pink);font-weight:700}.photomsg:empty{display:none}.doneparts{display:flex;gap:14px;flex-wrap:wrap;font-weight:800;color:var(--soft);margin-bottom:10px}.doneparts .ok{color:var(--mint)}"; document.head.appendChild(st); })();
+  (function(){ const st = document.createElement("style"); st.textContent = ".av.ph{overflow:hidden;padding:0;background:var(--line)}.av.ph img{width:100%;height:100%;object-fit:cover;display:block}.av.huge{width:76px;height:76px;font-size:2.1rem;flex:none}.photobtn{position:relative;border:none;background:none;padding:0;cursor:pointer;border-radius:50%;flex:none}.photobtn .cam{position:absolute;right:-2px;bottom:-2px;width:28px;height:28px;border-radius:50%;background:var(--sun);color:#1F2A5C;display:flex;align-items:center;justify-content:center;font-size:.95rem;box-shadow:0 2px 0 rgba(0,0,0,.2)}.photomsg{color:var(--pink);font-weight:700}.photomsg:empty{display:none}.doneparts{display:flex;gap:14px;flex-wrap:wrap;font-weight:800;color:var(--soft);margin-bottom:10px}.doneparts .ok{color:var(--mint)}.wk.is-part{border-left-color:var(--sun)}.wkleft{font-size:.85rem;font-weight:800;color:var(--soft)}.wkleft.ok{color:var(--mint)}.next .left{display:block;font-style:normal;font-size:.9rem;font-weight:800;color:var(--sun);margin-top:2px}"; document.head.appendChild(st); })();
   function shrinkPhoto(file){
     return new Promise((ok, no) => {
       const url = URL.createObjectURL(file); const img = new Image();
@@ -206,10 +211,10 @@
   /* ---------- pages ---------- */
   if(page === "home"){
     main.querySelector("#subjects").innerHTML = subjects.map(s=>{
-      const n = doneCount(s), nw = nextWeek(s);
+      const n = doneCount(s), nw = nextWeek(s), left = leftText(s, nw.n);
       return '<a class="card subj" style="--c:var(--'+s+')" href="/'+s+'"><h3>'+C[s].name+'</h3><p>'+C[s].blurb+'</p>' +
-        '<div class="bar" aria-label="'+n+' of 36 weeks done"><span style="width:'+(n/36*100)+'%"></span></div><p>'+n+' of 36 weeks done'+(me() ? ' · ⭐ '+total(me().id, s+":") : '')+'</p>' +
-        '<span class="next"><small>Up next'+(me() ? ' for '+esc(me().name) : '')+'</small>Week '+nw.n+': '+esc(nw.title)+'</span></a>';
+        '<div class="bar" aria-label="'+progText(s)+'"><span style="width:'+progPct(s)+'%"></span></div><p>'+progText(s)+(me() ? ' · ⭐ '+total(me().id, s+":") : '')+'</p>' +
+        '<span class="next"><small>Up next'+(me() ? ' for '+esc(me().name) : '')+'</small>Week '+nw.n+': '+esc(nw.title)+(left ? '<em class="left">'+left+'</em>' : '')+'</span></a>';
     }).join("");
     const g = document.getElementById("mbBest"); if(g && me()) g.textContent = "Best: ⭐ " + best("game:moon-bakery");
   }
@@ -219,12 +224,12 @@
     document.title = C[s].name + " | MAZ School";
     let html = '<nav class="crumbs"><a href="/">Home</a><span>/</span><span>'+C[s].name+'</span></nav>' +
       '<div class="subhead" style="--c:var(--'+s+')"><h1>'+C[s].name+'</h1><p class="lead">'+C[s].blurb+' One lesson a week for the whole school year.</p>' +
-      '<div class="prog"><div class="bar"><span style="width:'+(n/36*100)+'%"></span></div><b>'+n+' of 36 weeks done'+(me()?' · ⭐ '+total(me().id, s+":"):'')+'</b></div>' +
-      '<p style="margin-top:14px"><a class="btn" href="/lesson?s='+s+'&w='+nw.n+'">Start week '+nw.n+': '+esc(nw.title)+'</a></p></div>';
+      '<div class="prog"><div class="bar"><span style="width:'+progPct(s)+'%"></span></div><b>'+progText(s)+(me()?' · ⭐ '+total(me().id, s+":"):'')+'</b></div>' +
+      '<p style="margin-top:14px"><a class="btn" href="/lesson?s='+s+'&w='+nw.n+'">'+(weekProg(s,nw.n) > 0 ? 'Finish' : 'Start')+' week '+nw.n+': '+esc(nw.title)+'</a>'+(leftText(s,nw.n) ? ' <span class="kicker">'+leftText(s,nw.n)+'</span>' : '')+'</p></div>';
     C[s].units.forEach((u,ui)=>{
       const ws = all.filter(w=>w.ui===ui);
       html += '<section class="unit" style="--c:var(--'+s+')"><h2>Unit '+(ui+1)+': '+esc(u.t)+' <small>Weeks '+ws[0].n+'–'+ws[ws.length-1].n+'</small></h2><div class="weeks">' +
-        ws.map(w=>{ const st = best(s+":"+w.n+":act") + best(s+":"+w.n+":quiz"); return '<a class="wk'+(isDone(s,w.n)?' is-done':'')+(w.n===nw.n&&!isDone(s,w.n)?' is-next':'')+'" href="/lesson?s='+s+'&w='+w.n+'"><small>Week '+w.n+'</small><b>'+esc(w.title)+'</b>'+(st?'<span class="wkst">⭐ '+st+'</span>':'')+'</a>'; }).join("") +
+        ws.map(w=>{ const st = best(s+":"+w.n+":act") + best(s+":"+w.n+":quiz"); const pr = weekProg(s,w.n); return '<a class="wk'+(isDone(s,w.n)?' is-done':'')+(pr>0&&pr<1?' is-part':'')+(w.n===nw.n&&!isDone(s,w.n)?' is-next':'')+'" href="/lesson?s='+s+'&w='+w.n+'"><small>Week '+w.n+'</small><b>'+esc(w.title)+'</b>'+(st?'<span class="wkst">⭐ '+st+'</span>':'')+(pr>0&&pr<1?'<span class="wkleft">'+leftText(s,w.n)+'</span>':'')+(pr===1?'<span class="wkleft ok">✅ Done</span>':'')+'</a>'; }).join("") +
         '</div></section>';
     });
     main.innerHTML = html;
