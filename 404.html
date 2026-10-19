@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>MAZ School</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+(function(){
+  var p = location.pathname.replace(/\/index\.html$/, "").replace(/\.html$/, "").replace(/\/+$/, "");
+  var known = ["math","reading","science","lesson","stars","teacher","supplies","games","game","moon-bakery"];
+  var seg = p.split("/").filter(Boolean);
+  var dest = "/";
+  if(seg.length && known.indexOf(seg[0]) > -1) dest = "/" + seg[0];
+  if(seg[0] === "moon-bakery" || (seg[0] === "games" && seg[1] === "moon-bakery")) dest = "/moon-bakery";
+  location.replace(dest + location.search + location.hash);
+})();
+</script>
+<style>body{font-family:system-ui,sans-serif;background:#141a3a;color:#fff;display:grid;place-items:center;min-height:100vh;margin:0}a{color:#FFC93C}</style>
+</head><body><p>Taking you to the right page… <a href="/">Go home</a></p></body></html>
