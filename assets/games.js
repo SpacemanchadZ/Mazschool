@@ -334,16 +334,16 @@
     document.title = g.title + " | MAZ School";
     const map = () => {
       const tot = gameStars(g);
-      main.innerHTML = '<nav class="crumbs"><a href="../index.html">Home</a><span>/</span><a href="../games/index.html">Games</a><span>/</span><span>'+esc(g.title)+'</span></nav>' +
+      main.innerHTML = '<nav class="crumbs"><a href="/">Home</a><span>/</span><a href="/games">Games</a><span>/</span><span>'+esc(g.title)+'</span></nav>' +
         '<section class="gamehero" style="--gc:'+g.color+'"><span class="gemoji">'+g.emoji+'</span><div><span class="kicker">'+SUBJ[g.s]+' · Unit '+(g.ui+1)+': '+esc(C[g.s].units[g.ui].t)+'</span><h1>'+esc(g.title)+'</h1><p>'+esc(g.story)+'</p><p class="gtot">⭐ '+tot+' of 9 stars</p></div></section>' +
         '<div class="stations">'+g.stations.map((st,k)=>{ const b = API.best ? API.best("game:"+g.id+":"+k) : 0; return '<button class="card station" data-k="'+k+'" style="--gc:'+g.color+'"><span class="snum">'+(k+1)+'</span><b>'+esc(st.title)+'</b><span>'+esc(st.intro)+'</span><span class="sstars">'+starStr(b)+'</span><span class="btn small">'+(b ? "Play again" : "Play")+'</span></button>'; }).join("")+'</div>' +
-        (API.me && API.me() ? '' : '<div class="card notice">Stars won’t be saved until you pick who’s learning. <a class="btn small" href="../stars/index.html">Pick a learner</a></div>') +
-        '<p style="margin-top:20px"><a class="btn ghost" href="../games/index.html">All games</a> <a class="btn ghost" href="../'+g.s+'/index.html">'+SUBJ[g.s]+' lessons</a></p>';
+        (API.me && API.me() ? '' : '<div class="card notice">Stars won’t be saved until you pick who’s learning. <a class="btn small" href="/stars">Pick a learner</a></div>') +
+        '<p style="margin-top:20px"><a class="btn ghost" href="/games">All games</a> <a class="btn ghost" href="/'+g.s+'">'+SUBJ[g.s]+' lessons</a></p>';
       main.querySelectorAll(".station").forEach(b=>b.onclick=()=>run(+b.dataset.k));
     };
     const run = k => {
       const st = g.stations[k];
-      main.innerHTML = '<nav class="crumbs"><a href="../index.html">Home</a><span>/</span><a href="../games/index.html">Games</a><span>/</span><a href="#" id="toMap">'+esc(g.title)+'</a><span>/</span><span>'+esc(st.title)+'</span></nav><section class="card practice gameplay" style="--c:'+g.color+'"><p class="kicker">Station '+(k+1)+' of 3 · '+esc(st.intro)+'</p><div id="gp"></div></section><p style="margin-top:14px"><button class="btn ghost" id="back">Back to the map</button></p>';
+      main.innerHTML = '<nav class="crumbs"><a href="/">Home</a><span>/</span><a href="/games">Games</a><span>/</span><a href="#" id="toMap">'+esc(g.title)+'</a><span>/</span><span>'+esc(st.title)+'</span></nav><section class="card practice gameplay" style="--c:'+g.color+'"><p class="kicker">Station '+(k+1)+' of 3 · '+esc(st.intro)+'</p><div id="gp"></div></section><p style="margin-top:14px"><button class="btn ghost" id="back">Back to the map</button></p>';
       main.querySelector("#toMap").onclick = e => { e.preventDefault(); map(); };
       main.querySelector("#back").onclick = map;
       window.scrollTo({top:0});
@@ -363,10 +363,10 @@
   if(page === "games"){
     document.title = "Games | MAZ School";
     const main = document.getElementById("main");
-    let h = '<nav class="crumbs"><a href="../index.html">Home</a><span>/</span><span>Games</span></nav><h1>Game arcade</h1><p class="lead">One game for every unit, with three stations in each. Earn up to 9 stars per game. Stars are saved for whoever is learning.</p>' +
-      '<a class="card feature" href="../moon-bakery/index.html" style="margin-bottom:10px"><span class="gemoji sm">🍪</span><span><h3>Moon Bakery Math</h3><p>Pack cookies into boxes of 10. Goes with Math unit 2.</p></span></a>';
+    let h = '<nav class="crumbs"><a href="/">Home</a><span>/</span><span>Games</span></nav><h1>Game arcade</h1><p class="lead">One game for every unit, with three stations in each. Earn up to 9 stars per game. Stars are saved for whoever is learning.</p>';
+    const moon = '<a class="card agame" href="/moon-bakery" style="--gc:#E0A21B"><span class="gemoji sm">🍪</span><b>Moon Bakery Math</b><small>Unit 2: Place value · bonus game</small><span class="gst">⭐ '+(API.best ? API.best("game:moon-bakery") : 0)+'</span></a>';
     ["math","reading","science"].forEach(s=>{
-      h += '<section class="sec"><h2>'+SUBJ[s]+'</h2><div class="arcade">' + GAMES.filter(g=>g.s===s).map(g=>'<a class="card agame" href="../game/index.html?id='+g.id+'" style="--gc:'+g.color+'"><span class="gemoji sm">'+g.emoji+'</span><b>'+esc(g.title)+'</b><small>Unit '+(g.ui+1)+': '+esc(C[s].units[g.ui].t)+'</small><span class="gst">⭐ '+gameStars(g)+' / 9</span></a>').join("") + '</div></section>';
+      h += '<section class="sec"><h2>'+SUBJ[s]+'</h2><div class="arcade">' + GAMES.filter(g=>g.s===s).map(g=>'<a class="card agame" href="/game?id='+g.id+'" style="--gc:'+g.color+'"><span class="gemoji sm">'+g.emoji+'</span><b>'+esc(g.title)+'</b><small>Unit '+(g.ui+1)+': '+esc(C[s].units[g.ui].t)+'</small><span class="gst">⭐ '+gameStars(g)+' / 9</span></a>').map((card,k,arr)=>card + (s==="math" && k===1 ? moon : "")).join("") + '</div></section>';
     });
     main.innerHTML = h;
   }
@@ -375,6 +375,6 @@
   const slot = document.getElementById("unitGame");
   if(slot){
     const g = GAMES.find(x=>x.s===slot.dataset.s && x.ui===+slot.dataset.ui);
-    if(g) slot.innerHTML = '<a class="unitgame" href="../game/index.html?id='+g.id+'" style="--gc:'+g.color+'"><span class="gemoji sm">'+g.emoji+'</span><span><small>Unit game</small><b>Play '+esc(g.title)+'</b></span><span class="gst">⭐ '+gameStars(g)+' / 9</span></a>';
+    if(g) slot.innerHTML = '<a class="unitgame" href="/game?id='+g.id+'" style="--gc:'+g.color+'"><span class="gemoji sm">'+g.emoji+'</span><span><small>Unit game</small><b>Play '+esc(g.title)+'</b></span><span class="gst">⭐ '+gameStars(g)+' / 9</span></a>';
   }
 })();

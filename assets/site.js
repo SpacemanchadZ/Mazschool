@@ -38,11 +38,11 @@
   const current = page === "home" ? "home" : page === "stars" ? "stars" : (page === "teacher" || page === "supplies") ? "teacher" : (page === "games" || page === "game") ? "games" : (document.body.dataset.subject || new URLSearchParams(location.search).get("s"));
   const head = document.createElement("header");
   head.className = "site-head";
-  head.innerHTML = '<div class="in"><a class="logo" href="'+root+'index.html" aria-label="MAZ School home"><picture><source srcset="'+root+'assets/logo-light.svg" media="(prefers-color-scheme: dark)"><img src="'+root+'assets/logo.svg" alt="MAZ School"></picture></a>' +
-    '<a class="who" id="whoChip" href="'+root+'stars/index.html"></a>' +
-    '<nav class="site-nav" aria-label="Main"><a class="home" href="'+root+'index.html"'+(current==="home"?' aria-current="page"':'')+'>🏠 Home</a>' +
-    subjects.map(s=>'<a href="'+root+s+'/index.html"'+(current===s?' aria-current="page"':'')+'><span class="dot" style="background:var(--'+s+')"></span>'+C[s].name+'</a>').join("") +
-    '<a href="'+root+'stars/index.html"'+(current==="stars"?' aria-current="page"':'')+'>⭐ Stars</a><a href="'+root+'teacher/index.html"'+(current==="teacher"?' aria-current="page"':'')+'>📋 Teacher</a><a href="'+root+'games/index.html"'+(current==="games"?' aria-current="page"':'')+'>🎮 Games</a></nav></div>';
+  head.innerHTML = '<div class="in"><a class="logo" href="/" aria-label="MAZ School home"><picture><source srcset="'+root+'assets/logo-light.svg" media="(prefers-color-scheme: dark)"><img src="'+root+'assets/logo.svg" alt="MAZ School"></picture></a>' +
+    '<a class="who" id="whoChip" href="/stars"></a>' +
+    '<nav class="site-nav" aria-label="Main"><a class="home" href="/"'+(current==="home"?' aria-current="page"':'')+'>🏠 Home</a>' +
+    subjects.map(s=>'<a href="/'+s+'"'+(current===s?' aria-current="page"':'')+'><span class="dot" style="background:var(--'+s+')"></span>'+C[s].name+'</a>').join("") +
+    '<a href="/stars"'+(current==="stars"?' aria-current="page"':'')+'>⭐ Stars</a><a href="/teacher"'+(current==="teacher"?' aria-current="page"':'')+'>📋 Teacher</a><a href="/games"'+(current==="games"?' aria-current="page"':'')+'>🎮 Games</a></nav></div>';
   document.body.prepend(head);
   function refreshChip(){ const c = document.getElementById("whoChip"); if(!c) return; const u = me(); c.innerHTML = u ? '<span class="av">'+esc(u.name[0].toUpperCase())+'</span>'+esc(u.name)+' <b>⭐ '+total(u.id)+'</b>' : '👤 Who’s learning?'; c.classList.toggle("empty", !u); }
   refreshChip();
@@ -163,7 +163,7 @@
     }
     function finish(){
       const isNew = setBest(key, earned);
-      el.innerHTML = '<div class="act-done"><div class="big">'+'⭐'.repeat(earned)+'<span class="dim">'+'☆'.repeat(rounds.length-earned)+'</span></div><p><b>You earned '+earned+' of '+rounds.length+' stars!</b></p><p class="kicker">'+(me() ? (isNew ? "New best for "+esc(me().name)+"!" : "Best so far: "+best(key)+" stars.") : 'Pick a learner on the <a href="'+root+'stars/index.html">Stars page</a> to save stars.')+'</p><button class="btn" id="again">Play again</button></div>';
+      el.innerHTML = '<div class="act-done"><div class="big">'+'⭐'.repeat(earned)+'<span class="dim">'+'☆'.repeat(rounds.length-earned)+'</span></div><p><b>You earned '+earned+' of '+rounds.length+' stars!</b></p><p class="kicker">'+(me() ? (isNew ? "New best for "+esc(me().name)+"!" : "Best so far: "+best(key)+" stars.") : 'Pick a learner on the <a href="/stars">Stars page</a> to save stars.')+'</p><button class="btn" id="again">Play again</button></div>';
       el.querySelector("#again").onclick = start;
       if(earned === rounds.length) tone(true);
       updateWeekStars && updateWeekStars();
@@ -174,7 +174,7 @@
   function teacherPlan(s, w, wn, QS){
     const u = window.TEACHER.units[s][w.ui];
     return '<section class="card tplan"><div class="tp-top"><div><span class="kicker">Teacher plan · '+C[s].name+' · Week '+wn+' · Unit '+(w.ui+1)+': '+esc(w.unit)+'</span><h2>'+esc(w.title)+'</h2><p class="goal"><b>Goal:</b> '+esc(w.goal)+'</p></div><button class="btn ghost small" onclick="window.print()">Print plan</button></div>' +
-      '<div class="tp-grid"><div><h3>Before you start</h3><ul>'+w.mat.split(/,\s*/).map(m=>'<li>'+esc(m)+'</li>').join("")+'</ul><p class="kicker">Time: about 35–40 minutes. <a href="../supplies/index.html">Full supply list</a></p></div>' +
+      '<div class="tp-grid"><div><h3>Before you start</h3><ul>'+w.mat.split(/,\s*/).map(m=>'<li>'+esc(m)+'</li>').join("")+'</ul><p class="kicker">Time: about 35–40 minutes. <a href="/supplies">Full supply list</a></p></div>' +
       '<div><h3>Questions to ask while they work</h3><ul>'+u.ask.map(a=>'<li>'+esc(a)+'</li>').join("")+'</ul></div></div>' +
       '<h3>Lesson flow</h3><ol class="flow">' +
       '<li><b>Warm-up, 5 minutes.</b> '+esc(u.warm)+'</li>' +
@@ -190,7 +190,7 @@
   if(page === "home"){
     main.querySelector("#subjects").innerHTML = subjects.map(s=>{
       const n = doneCount(s), nw = nextWeek(s);
-      return '<a class="card subj" style="--c:var(--'+s+')" href="'+s+'/index.html"><h3>'+C[s].name+'</h3><p>'+C[s].blurb+'</p>' +
+      return '<a class="card subj" style="--c:var(--'+s+')" href="/'+s+'"><h3>'+C[s].name+'</h3><p>'+C[s].blurb+'</p>' +
         '<div class="bar" aria-label="'+n+' of 36 weeks done"><span style="width:'+(n/36*100)+'%"></span></div><p>'+n+' of 36 weeks done'+(me() ? ' · ⭐ '+total(me().id, s+":") : '')+'</p>' +
         '<span class="next"><small>Up next'+(me() ? ' for '+esc(me().name) : '')+'</small>Week '+nw.n+': '+esc(nw.title)+'</span></a>';
     }).join("");
@@ -200,14 +200,14 @@
   if(page === "subject"){
     const s = document.body.dataset.subject, all = weeks(s), n = doneCount(s), nw = nextWeek(s);
     document.title = C[s].name + " | MAZ School";
-    let html = '<nav class="crumbs"><a href="../index.html">Home</a><span>/</span><span>'+C[s].name+'</span></nav>' +
+    let html = '<nav class="crumbs"><a href="/">Home</a><span>/</span><span>'+C[s].name+'</span></nav>' +
       '<div class="subhead" style="--c:var(--'+s+')"><h1>'+C[s].name+'</h1><p class="lead">'+C[s].blurb+' One lesson a week for the whole school year.</p>' +
       '<div class="prog"><div class="bar"><span style="width:'+(n/36*100)+'%"></span></div><b>'+n+' of 36 weeks done'+(me()?' · ⭐ '+total(me().id, s+":"):'')+'</b></div>' +
-      '<p style="margin-top:14px"><a class="btn" href="../lesson/index.html?s='+s+'&w='+nw.n+'">Start week '+nw.n+': '+esc(nw.title)+'</a></p></div>';
+      '<p style="margin-top:14px"><a class="btn" href="/lesson?s='+s+'&w='+nw.n+'">Start week '+nw.n+': '+esc(nw.title)+'</a></p></div>';
     C[s].units.forEach((u,ui)=>{
       const ws = all.filter(w=>w.ui===ui);
       html += '<section class="unit" style="--c:var(--'+s+')"><h2>Unit '+(ui+1)+': '+esc(u.t)+' <small>Weeks '+ws[0].n+'–'+ws[ws.length-1].n+'</small></h2><div class="weeks">' +
-        ws.map(w=>{ const st = best(s+":"+w.n+":act") + best(s+":"+w.n+":quiz"); return '<a class="wk'+(isDone(s,w.n)?' is-done':'')+(w.n===nw.n&&!isDone(s,w.n)?' is-next':'')+'" href="../lesson/index.html?s='+s+'&w='+w.n+'"><small>Week '+w.n+'</small><b>'+esc(w.title)+'</b>'+(st?'<span class="wkst">⭐ '+st+'</span>':'')+'</a>'; }).join("") +
+        ws.map(w=>{ const st = best(s+":"+w.n+":act") + best(s+":"+w.n+":quiz"); return '<a class="wk'+(isDone(s,w.n)?' is-done':'')+(w.n===nw.n&&!isDone(s,w.n)?' is-next':'')+'" href="/lesson?s='+s+'&w='+w.n+'"><small>Week '+w.n+'</small><b>'+esc(w.title)+'</b>'+(st?'<span class="wkst">⭐ '+st+'</span>':'')+'</a>'; }).join("") +
         '</div></section>';
     });
     main.innerHTML = html;
@@ -220,13 +220,13 @@
     const w = weeks(s)[wn-1];
     const QS = quickCheck(s, w, wn);
     document.title = "Week " + wn + ": " + w.title + " | " + C[s].name + " | MAZ School";
-    let html = '<nav class="crumbs"><a href="../index.html">Home</a><span>/</span><a href="../'+s+'/index.html">'+C[s].name+'</a><span>/</span><span>Unit '+(w.ui+1)+': '+esc(w.unit)+'</span></nav>' +
+    let html = '<nav class="crumbs"><a href="/">Home</a><span>/</span><a href="/'+s+'">'+C[s].name+'</a><span>/</span><span>Unit '+(w.ui+1)+': '+esc(w.unit)+'</span></nav>' +
       '<div class="lesson-head" style="--c:var(--'+s+')"><span class="kicker">'+C[s].name+' · Week '+wn+' of 36</span><h1>'+esc(w.title)+'</h1><p class="goal">'+esc(w.goal)+'</p><p class="kicker" id="weekStars"></p></div>' +
       '<div class="ltabs" role="tablist"><button class="ltab on" data-v="kid">🧒 Lesson</button><button class="ltab" data-v="teach">📋 Teacher plan</button></div><div id="kidView">' +
-      (me() ? '' : '<div class="card notice">Stars won’t be saved until you pick who’s learning. <a class="btn small" href="../stars/index.html">Pick a learner</a></div>') +
+      (me() ? '' : '<div class="card notice">Stars won’t be saved until you pick who’s learning. <a class="btn small" href="/stars">Pick a learner</a></div>') +
       '<div class="lgrid"><section class="card"><h2>Let’s do it</h2><ol class="steps">' +
       w.steps.map((st,i)=>'<li><label><input type="checkbox"><span><span class="n">'+(i+1)+'.</span> '+esc(st)+'</span></label></li>').join("") +
-      '</ol><div id="unitGame" data-s="'+s+'" data-ui="'+w.ui+'"></div>' + (w.extra.game ? '<div class="game"><a class="btn" href="../'+w.extra.game+'">Play '+esc(w.extra.gameName)+'</a></div>' : '') +
+      '</ol><div id="unitGame" data-s="'+s+'" data-ui="'+w.ui+'"></div>' + (w.extra.game ? '<div class="game"><a class="btn" href="/'+w.extra.game.replace(/\/(index\.html)?$/,"")+'">Play '+esc(w.extra.gameName)+'</a></div>' : '') +
       '</section><aside class="card"><h2>You’ll need</h2><p class="mat">'+esc(w.mat)+'</p></aside></div>' +
       '<section class="card practice" style="margin-top:18px;--c:var(--'+s+')"><h2>Practice game</h2><div id="act"></div></section>' +
       '<section class="card quiz" style="margin-top:18px"><h2>Quick check</h2><p class="lead" style="margin:0">'+QS.length+' questions. Get each one right on the first try for a star.</p>' +
@@ -234,7 +234,7 @@
       '<div class="finish"><button class="btn" id="markDone"></button><span id="doneNote" class="kicker"></span></div></section>' +
       '</div><div id="teachView" hidden>'+teacherPlan(s, w, wn, QS)+'</div>' +
       '<nav class="pager">' + (wn>1 ? '<a class="btn ghost" href="?s='+s+'&w='+(wn-1)+'">Week '+(wn-1)+'</a>' : '<span></span>') +
-      (wn<36 ? '<a class="btn ghost" href="?s='+s+'&w='+(wn+1)+'">Week '+(wn+1)+'</a>' : '<a class="btn ghost" href="../'+s+'/index.html">Back to '+C[s].name+'</a>') + '</nav>';
+      (wn<36 ? '<a class="btn ghost" href="?s='+s+'&w='+(wn+1)+'">Week '+(wn+1)+'</a>' : '<a class="btn ghost" href="/'+s+'">Back to '+C[s].name+'</a>') + '</nav>';
     main.innerHTML = html;
     const showView = v => { const t = v === "teach"; main.querySelectorAll(".ltab").forEach(x=>x.classList.toggle("on", x.dataset.v === v)); document.getElementById("kidView").hidden = t; document.getElementById("teachView").hidden = !t; };
     main.querySelectorAll(".ltab").forEach(b=>b.onclick=()=>showView(b.dataset.v));
@@ -260,12 +260,12 @@
   if(page === "teacher"){
     document.title = "Teacher | MAZ School";
     const days = [["Monday","Math lesson"],["Tuesday","Reading lesson"],["Wednesday","Science lesson"],["Thursday","Replay practice games and Moon Bakery"],["Friday","Redo quick checks, then look at the Stars page together"]];
-    let h = '<nav class="crumbs"><a href="../index.html">Home</a><span>/</span><span>Teacher</span></nav><h1>Teacher’s guide</h1><p class="lead">Everything for the grown-up: the weekly rhythm, the whole year at a glance and a teacher plan for every lesson.</p>' +
-      '<div class="tlinks"><a class="card tl" href="../supplies/index.html"><b>🛒 Supply list</b><span>Everything to buy for the year, with checkboxes.</span></a><a class="card tl" href="../stars/index.html"><b>⭐ Stars</b><span>Learners, star totals and backups.</span></a><a class="card tl" href="../moon-bakery/index.html#guide"><b>🍪 Moon Bakery guide</b><span>The step-by-step guide for the bakery game.</span></a></div>' +
+    let h = '<nav class="crumbs"><a href="/">Home</a><span>/</span><span>Teacher</span></nav><h1>Teacher’s guide</h1><p class="lead">Everything for the grown-up: the weekly rhythm, the whole year at a glance and a teacher plan for every lesson.</p>' +
+      '<div class="tlinks"><a class="card tl" href="/supplies"><b>🛒 Supply list</b><span>Everything to buy for the year, with checkboxes.</span></a><a class="card tl" href="/stars"><b>⭐ Stars</b><span>Learners, star totals and backups.</span></a><a class="card tl" href="/moon-bakery#guide"><b>🍪 Moon Bakery guide</b><span>The step-by-step guide for the bakery game.</span></a></div>' +
       '<section class="card" style="margin-top:20px"><h2>A typical week</h2><p>One lesson per subject each week, about 35–40 minutes each. Open any lesson and tap <b>📋 Teacher plan</b> for timing, a script, questions to ask, easier and harder options and an answer key.</p><div class="week">'+days.map(d=>'<div><b>'+d[0]+'</b><span>'+d[1]+'</span></div>').join("")+'</div></section>' +
       '<section class="sec"><h2>The year at a glance</h2><p class="lead">Tap any lesson to open its teacher plan.</p><div class="yr-wrap"><table class="yr"><thead><tr><th>Week</th><th>Math</th><th>Reading</th><th>Science</th></tr></thead><tbody>';
     const W = {}; subjects.forEach(s=>W[s]=weeks(s));
-    for(let i=0;i<36;i++) h += '<tr><td>'+(i+1)+'</td>'+subjects.map(s=>{ const w = W[s][i]; return '<td><a href="../lesson/index.html?s='+s+'&w='+(i+1)+'&view=teach">'+esc(w.title)+'</a><small>'+esc(w.unit)+'</small></td>'; }).join("")+'</tr>';
+    for(let i=0;i<36;i++) h += '<tr><td>'+(i+1)+'</td>'+subjects.map(s=>{ const w = W[s][i]; return '<td><a href="/lesson?s='+s+'&w='+(i+1)+'&view=teach">'+esc(w.title)+'</a><small>'+esc(w.unit)+'</small></td>'; }).join("")+'</tr>';
     main.innerHTML = h + '</tbody></table></div></section>';
   }
 
@@ -275,7 +275,7 @@
     let only = false;
     function renderS(){
       const all = window.TEACHER.supplies, tot = all.reduce((a,c)=>a+c.items.length,0), n = all.reduce((a,c)=>a+c.items.filter(it=>got[it[0]]).length,0);
-      let h = '<nav class="crumbs"><a href="../index.html">Home</a><span>/</span><a href="../teacher/index.html">Teacher</a><span>/</span><span>Supplies</span></nav><h1>Supply list</h1><p class="lead">Everything the 108 lessons use, in one place. Items marked “probably at home” are things most families already have. Check off each one once you have it.</p>' +
+      let h = '<nav class="crumbs"><a href="/">Home</a><span>/</span><a href="/teacher">Teacher</a><span>/</span><span>Supplies</span></nav><h1>Supply list</h1><p class="lead">Everything the 108 lessons use, in one place. Items marked “probably at home” are things most families already have. Check off each one once you have it.</p>' +
         '<div class="prog"><div class="bar"><span style="width:'+(n/tot*100)+'%"></span></div><b>'+n+' of '+tot+' ready</b></div><div class="lbtns"><button class="btn ghost small" id="only">'+(only ? 'Show everything' : 'Show only what I still need')+'</button><button class="btn ghost small" onclick="window.print()">Print shopping list</button></div>';
       all.forEach(c=>{ const items = c.items.filter(it=>!only || !got[it[0]]); if(!items.length) return;
         h += '<section class="card sup"><h2>'+esc(c.cat)+'</h2>'+items.map(it=>'<label class="chk'+(got[it[0]]?' is-done':'')+'"><input type="checkbox" data-k="'+esc(it[0])+'"'+(got[it[0]]?' checked':'')+'><span><b>'+esc(it[0])+'</b> <span class="qty">'+esc(it[1])+'</span>'+(it[3]?' <span class="home">probably at home</span>':'')+'<small>'+esc(it[2])+'</small></span></label>').join("")+'</section>'; });
@@ -289,7 +289,7 @@
   if(page === "stars"){
     let armed = null;
     function render(){
-      let h = '<nav class="crumbs"><a href="../index.html">Home</a><span>/</span><span>Stars</span></nav><h1>Stars</h1>' +
+      let h = '<nav class="crumbs"><a href="/">Home</a><span>/</span><span>Stars</span></nav><h1>Stars</h1>' +
         '<p class="lead">Each learner earns stars in practice games, quick checks and Moon Bakery. Lessons keep each learner’s best score, so stars never go down.</p>';
       if(!D.users.length) h += '<div class="card notice">Add a learner to start saving stars.</div>';
       h += '<div class="learners">' + D.users.map(u=>{
@@ -316,4 +316,4 @@
     render();
   }
 })();
-(function(){ var r = document.body.dataset.root || ""; var sc = document.createElement("script"); sc.src = r + "assets/sync.js?v=20261019c"; document.body.appendChild(sc); })();
+(function(){ var r = document.body.dataset.root || ""; var sc = document.createElement("script"); sc.src = r + "assets/sync.js?v=20261019d"; document.body.appendChild(sc); })();
