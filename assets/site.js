@@ -258,7 +258,9 @@
     if(q.get("view") === "teach") showView("teach");
     updateWeekStars = () => { const a = best(s+":"+wn+":act"), b = best(s+":"+wn+":quiz"); document.getElementById("weekStars").textContent = me() ? (a+b ? "⭐ "+(a+b)+" stars earned this week by "+me().name : "Learning now: "+me().name) : ""; };
     updateWeekStars();
-    main.querySelectorAll(".steps input").forEach(cb=>cb.onchange=()=>cb.parentElement.classList.toggle("is-done",cb.checked));
+    { const sk = s+":"+wn; const boxes = [...main.querySelectorAll(".steps input")]; const saved = (((D.steps || {})[uid()] || {})[sk] || {}).c || [];
+      boxes.forEach((cb,i) => { cb.checked = saved.includes(i); cb.parentElement.classList.toggle("is-done", cb.checked);
+        cb.onchange = () => { cb.parentElement.classList.toggle("is-done", cb.checked); D.steps = D.steps || {}; const id = uid(); D.steps[id] = D.steps[id] || {}; D.steps[id][sk] = {c: boxes.map((b,j)=>b.checked?j:-1).filter(j=>j>=0), t: Date.now()}; save(); }; }); }
     practice(document.getElementById("act"), s, wn);
     let quizStars = 0; const qAll = main.querySelectorAll(".q").length; let qAnswered = 0;
     main.querySelectorAll(".q").forEach(qe=>{
@@ -343,4 +345,4 @@
     render();
   }
 })();
-(function(){ var r = document.body.dataset.root || ""; var sc = document.createElement("script"); sc.src = r + "assets/sync.js?v=20261019g"; document.body.appendChild(sc); })();
+(function(){ var r = document.body.dataset.root || ""; var sc = document.createElement("script"); sc.src = r + "assets/sync.js?v=20261019i"; document.body.appendChild(sc); })();

@@ -51,7 +51,9 @@
     });
     const fin = {};
     [b, a].forEach(src => Object.keys(src.fin || {}).forEach(id => { const k = map(id); if(gone(k)) return; const t = fin[k] = fin[k] || {}; Object.keys(src.fin[id] || {}).forEach(w => { t[w] = Object.assign(t[w] || {}, src.fin[id][w]); }); }));
-    const out = Object.assign({}, b, a, {users, stars, done, doneT, removed, fin});
+    const steps = {};
+    [b, a].forEach(src => Object.keys(src.steps || {}).forEach(id => { const k = map(id); if(gone(k)) return; const t = steps[k] = steps[k] || {}; Object.keys(src.steps[id] || {}).forEach(w => { const v = src.steps[id][w]; if(v && (!t[w] || (v.t || 0) >= (t[w].t || 0))) t[w] = v; }); }));
+    const out = Object.assign({}, b, a, {users, stars, done, doneT, removed, fin, steps});
     let cur = a.current ? map(a.current) : null;
     if(!users.some(u => u.id === cur)) cur = users[0] ? users[0].id : null;
     out.current = cur;
