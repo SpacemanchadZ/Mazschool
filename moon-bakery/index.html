@@ -812,5 +812,10 @@ details.stk p{margin:6px 0 0;font-size:1.02rem}
   };
 })();
 </script>
+<script>
+/* MAZ School: save Moon Bakery stars to the current learner */
+(function(){try{var KEY="maz-data";var D=JSON.parse(localStorage.getItem(KEY)||"null");var u=D&&D.current&&D.users.find(function(x){return x.id===D.current;});var ni=document.getElementById("name");if(u&&ni&&!ni.value){ni.value=u.name;ni.dispatchEvent(new Event("input"));}
+var el=document.getElementById("stars");new MutationObserver(function(){var n=parseInt(el.textContent.replace(/\D/g,""),10)||0;if(!n)return;var D2=JSON.parse(localStorage.getItem(KEY)||"null");if(!D2||!D2.current)return;D2.stars=D2.stars||{};var s=D2.stars[D2.current]=D2.stars[D2.current]||{};if(n>(s["game:moon-bakery"]||0)){s["game:moon-bakery"]=n;localStorage.setItem(KEY,JSON.stringify(D2));}}).observe(el,{childList:true,characterData:true,subtree:true});}catch(e){}})();
+</script>
 </body>
 </html>
