@@ -173,6 +173,7 @@
       S("order","Engineer steps","Put the engineering steps in order.",{sets:()=>specOf("science",36,"order").sets})]}
   ];
   window.MAZ_GAMES = GAMES;
+  const FACE_LEFT = ["🐒","🐴","🐎","🐝","🦒","🏃","☄️"];
   const SUBJ = {math:"Math", reading:"Reading", science:"Science"};
   const gameStars = g => g.stations.reduce((a,_,k)=>a+(API.best ? API.best("game:"+g.id+":"+k) : 0), 0);
 
@@ -221,7 +222,7 @@
 
     if(st.type === "race"){
       let score = 0, left = 60, timer;
-      el.innerHTML = top('⏱ <b id="tl">60</b>s') + '<div class="track"><span class="runner" id="rn">'+st.runner+'</span><span class="finish">🏁</span></div><div id="rq"></div><div class="act-fb" aria-live="polite"></div>';
+      el.innerHTML = top('⏱ <b id="tl">60</b>s') + '<div class="track"><span class="runner" id="rn"'+(FACE_LEFT.includes(st.runner)?' style="transform:scaleX(-1)"':'')+'>'+st.runner+'</span><span class="finish">🏁</span></div><div id="rq"></div><div class="act-fb" aria-live="polite"></div>';
       const rn = el.querySelector("#rn");
       const ask = () => {
         const q = st.pool();
