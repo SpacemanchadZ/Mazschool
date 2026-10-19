@@ -14,6 +14,7 @@
   function tone(ok){ try { actx = actx || new (window.AudioContext||window.webkitAudioContext)(); (ok?[523,659,784]:[300,220]).forEach((f,i)=>{ const o=actx.createOscillator(), g=actx.createGain(); o.type="triangle"; o.frequency.value=f; g.gain.setValueAtTime(.15,actx.currentTime+i*.1); g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+i*.1+.25); o.connect(g).connect(actx.destination); o.start(actx.currentTime+i*.1); o.stop(actx.currentTime+i*.1+.3); }); } catch(e) {} }
   const speak = t => API.speak && API.speak(t);
 
+  (function(){ const st = document.createElement("style"); st.textContent = ".pairprompt{display:flex;align-items:center;justify-content:center;min-height:90px;background:var(--bg);border-radius:18px;padding:14px;margin:8px 0 12px;font-weight:800;font-size:clamp(1.2rem,4vw,1.6rem);text-align:center}.pairprompt svg{width:90px;height:auto}.pairopts .opt{min-height:54px;font-size:1.05rem}.pairopts .opt.right{background:var(--mint);color:#fff}"; document.head.appendChild(st); })();
   /* ---------- question helpers ---------- */
   function misspell(w){ const o = new Set(); let g = 0; while(o.size < 2 && g++ < 60){ const k = Math.floor(Math.random()*w.length), t = Math.random(); let m; if(t < .34 && w.length > 2){ const i = Math.min(k, w.length-2); m = w.slice(0,i)+w[i+1]+w[i]+w.slice(i+2); } else if(t < .67){ m = w.slice(0,k)+w[k]+w.slice(k); } else { m = w.slice(0,k)+w.slice(k+1); } if(m !== w && m.length) o.add(m); } return [...o]; }
   function mcqR(q,c,wr,vis){ const o = shuffle([c].concat(wr.filter(x=>String(x)!==String(c))).map(String)); return {q, opts:o, a:o.indexOf(String(c)), vis}; }
@@ -204,20 +205,19 @@
 
     if(st.type === "match"){
       const pairs = shuffle(typeof st.pairs === "function" ? st.pairs() : st.pairs).slice(0,6);
-      const cards = shuffle(pairs.flatMap((p,j)=>[{t:p[0],j},{t:p[1],j}]));
-      let open = [], moves = 0, matched = 0, lock = false;
-      el.innerHTML = top('Moves: <b id="mv">0</b>') + '<div class="act-q"><p>Flip two cards to find a match.</p></div><div class="memgrid">'+cards.map((c,x)=>'<button class="mem" data-x="'+x+'"><span class="back">?</span><span class="front">'+(c.t.startsWith("<svg") ? c.t : esc(c.t))+'</span></button>').join("")+'</div><div class="act-fb" aria-live="polite"></div>';
-      el.querySelectorAll(".mem").forEach(b=>b.onclick=()=>{
-        if(lock || b.classList.contains("up")) return;
-        b.classList.add("up"); open.push(b);
-        if(open.length === 2){
-          moves++; el.querySelector("#mv").textContent = moves; lock = true;
-          const [a, c] = open;
-          if(cards[+a.dataset.x].j === cards[+c.dataset.x].j){ tone(true); a.classList.add("got"); c.classList.add("got"); open = []; lock = false; matched++; fb("Match!", true); if(matched === pairs.length) setTimeout(()=>done(moves <= pairs.length+3 ? 3 : moves <= pairs.length+7 ? 2 : 1), 700); }
-          else setTimeout(()=>{ a.classList.remove("up"); c.classList.remove("up"); open = []; lock = false; }, 900);
-        }
-      });
-      return;
+      rounds = pairs.length;
+      const isSvg = t => String(t).startsWith("<svg");
+      const show = () => {
+        missed = false; const pr = pairs[i];
+        const opts = shuffle([pr[1]].concat(shuffle(pairs.filter(x=>x!==pr).map(x=>x[1])).slice(0,3)));
+        el.innerHTML = top("Pair "+(i+1)+" of "+rounds) + '<div class="act-q"><p>What goes with this?</p>'+(isSvg(pr[0])?'':'<button class="say" aria-label="Read it to me">🔊</button>')+'</div><div class="pairprompt">'+(isSvg(pr[0]) ? pr[0] : esc(pr[0]))+'</div><div class="opts pairopts">'+opts.map((o,j)=>'<button class="opt" data-j="'+j+'">'+esc(o)+'</button>').join("")+'</div><div class="act-fb" aria-live="polite"></div>';
+        const say = el.querySelector(".say"); if(say) say.onclick = () => speak(pr[0]);
+        el.querySelectorAll(".pairopts .opt").forEach(b=>b.onclick=()=>{
+          if(opts[+b.dataset.j] === pr[1]){ tone(true); b.classList.add("right"); fb("Yes! "+(isSvg(pr[0]) ? "" : pr[0]+" goes with ")+pr[1]+".", true); el.querySelectorAll(".pairopts .opt").forEach(x=>x.disabled=true); nextRound(show); }
+          else { missed = true; tone(false); shake(b); fb("Not quite. Try another one.", false); }
+        });
+      };
+      return show();
     }
 
     if(st.type === "race"){
