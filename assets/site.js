@@ -35,17 +35,18 @@
   const doneCount = s => weeks(s).filter(w=>isDone(s,w.n)).length;
 
   /* ---------- header with Home button and learner chip ---------- */
-  const current = page === "home" ? "home" : page === "stars" ? "stars" : (page === "teacher" || page === "supplies") ? "teacher" : (document.body.dataset.subject || new URLSearchParams(location.search).get("s"));
+  const current = page === "home" ? "home" : page === "stars" ? "stars" : (page === "teacher" || page === "supplies") ? "teacher" : (page === "games" || page === "game") ? "games" : (document.body.dataset.subject || new URLSearchParams(location.search).get("s"));
   const head = document.createElement("header");
   head.className = "site-head";
   head.innerHTML = '<div class="in"><a class="logo" href="'+root+'index.html" aria-label="MAZ School home"><picture><source srcset="'+root+'assets/logo-light.svg" media="(prefers-color-scheme: dark)"><img src="'+root+'assets/logo.svg" alt="MAZ School"></picture></a>' +
     '<a class="who" id="whoChip" href="'+root+'stars/index.html"></a>' +
     '<nav class="site-nav" aria-label="Main"><a class="home" href="'+root+'index.html"'+(current==="home"?' aria-current="page"':'')+'>🏠 Home</a>' +
     subjects.map(s=>'<a href="'+root+s+'/index.html"'+(current===s?' aria-current="page"':'')+'><span class="dot" style="background:var(--'+s+')"></span>'+C[s].name+'</a>').join("") +
-    '<a href="'+root+'stars/index.html"'+(current==="stars"?' aria-current="page"':'')+'>⭐ Stars</a><a href="'+root+'teacher/index.html"'+(current==="teacher"?' aria-current="page"':'')+'>📋 Teacher</a></nav></div>';
+    '<a href="'+root+'stars/index.html"'+(current==="stars"?' aria-current="page"':'')+'>⭐ Stars</a><a href="'+root+'teacher/index.html"'+(current==="teacher"?' aria-current="page"':'')+'>📋 Teacher</a><a href="'+root+'games/index.html"'+(current==="games"?' aria-current="page"':'')+'>🎮 Games</a></nav></div>';
   document.body.prepend(head);
   function refreshChip(){ const c = document.getElementById("whoChip"); if(!c) return; const u = me(); c.innerHTML = u ? '<span class="av">'+esc(u.name[0].toUpperCase())+'</span>'+esc(u.name)+' <b>⭐ '+total(u.id)+'</b>' : '👤 Who’s learning?'; c.classList.toggle("empty", !u); }
   refreshChip();
+  window.MAZ_API = { best, setBest, me, refreshChip, speak:(t)=>{ try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.rate = .9; speechSynthesis.speak(u); } catch(e) {} } };
   const foot = document.createElement("footer");
   foot.className = "site-foot";
   foot.innerHTML = '<img src="'+root+'assets/icon.svg" alt=""><span>© 2026 MAZ School</span>';
@@ -225,7 +226,7 @@
       (me() ? '' : '<div class="card notice">Stars won’t be saved until you pick who’s learning. <a class="btn small" href="../stars/index.html">Pick a learner</a></div>') +
       '<div class="lgrid"><section class="card"><h2>Let’s do it</h2><ol class="steps">' +
       w.steps.map((st,i)=>'<li><label><input type="checkbox"><span><span class="n">'+(i+1)+'.</span> '+esc(st)+'</span></label></li>').join("") +
-      '</ol>' + (w.extra.game ? '<div class="game"><a class="btn" href="../'+w.extra.game+'">Play '+esc(w.extra.gameName)+'</a></div>' : '') +
+      '</ol><div id="unitGame" data-s="'+s+'" data-ui="'+w.ui+'"></div>' + (w.extra.game ? '<div class="game"><a class="btn" href="../'+w.extra.game+'">Play '+esc(w.extra.gameName)+'</a></div>' : '') +
       '</section><aside class="card"><h2>You’ll need</h2><p class="mat">'+esc(w.mat)+'</p></aside></div>' +
       '<section class="card practice" style="margin-top:18px;--c:var(--'+s+')"><h2>Practice game</h2><div id="act"></div></section>' +
       '<section class="card quiz" style="margin-top:18px"><h2>Quick check</h2><p class="lead" style="margin:0">'+QS.length+' questions. Get each one right on the first try for a star.</p>' +

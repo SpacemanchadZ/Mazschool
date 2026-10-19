@@ -197,6 +197,7 @@ addS(science,26,[["Staying inside during a blizzard",0],["Flying a kite in a thu
 addS(science,33,[["Wheelbarrow wheel",1],["Ramp into a moving truck",2],["Spoon prying a lid off a can",0],["Car wheel",1]]);
 window.ACTIVITIES={math,reading,science};
 window.MAZ_TOOLS={mcq,near,R,shuffle};
+window.MAZ_GEN=G;
 })();
 
 /* Teacher notes per unit and the full supply list */
