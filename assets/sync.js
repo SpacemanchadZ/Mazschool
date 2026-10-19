@@ -26,7 +26,7 @@
     a.users.forEach(u => {
       if(gone(u.id)) return;
       const ex = users.find(x => x.id === u.id);
-      if(ex){ if((u.t || 0) > (ex.t || 0)) Object.assign(ex, u); return; }
+      if(ex){ if((u.t || 0) > (ex.t || 0)){ Object.keys(ex).forEach(k => delete ex[k]); Object.assign(ex, u); } return; }
       const same = byName[key(u.name)];
       if(same){ idMap[u.id] = same; return; }
       users.push(Object.assign({}, u)); byName[key(u.name)] = u.id;

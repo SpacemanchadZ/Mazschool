@@ -44,7 +44,18 @@
     subjects.map(s=>'<a href="/'+s+'"'+(current===s?' aria-current="page"':'')+'><span class="dot" style="background:var(--'+s+')"></span>'+C[s].name+'</a>').join("") +
     '<a href="/stars"'+(current==="stars"?' aria-current="page"':'')+'>⭐ Stars</a><a href="/teacher"'+(current==="teacher"?' aria-current="page"':'')+'>📋 Teacher</a><a href="/games"'+(current==="games"?' aria-current="page"':'')+'>🎮 Games</a></nav></div>';
   document.body.prepend(head);
-  function refreshChip(){ const c = document.getElementById("whoChip"); if(!c) return; const u = me(); c.innerHTML = u ? '<span class="av">'+esc(u.name[0].toUpperCase())+'</span>'+esc(u.name)+' <b>⭐ '+total(u.id)+'</b>' : '👤 Who’s learning?'; c.classList.toggle("empty", !u); }
+  const okPhoto = v => typeof v === "string" && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(v);
+  function av(u, size){ const cls = "av" + (size ? " " + size : ""); return okPhoto(u.photo) ? '<span class="'+cls+' ph"><img src="'+u.photo+'" alt=""></span>' : '<span class="'+cls+'">'+esc(u.name[0].toUpperCase())+'</span>'; }
+  (function(){ const st = document.createElement("style"); st.textContent = ".av.ph{overflow:hidden;padding:0;background:var(--line)}.av.ph img{width:100%;height:100%;object-fit:cover;display:block}.av.huge{width:76px;height:76px;font-size:2.1rem;flex:none}.photobtn{position:relative;border:none;background:none;padding:0;cursor:pointer;border-radius:50%;flex:none}.photobtn .cam{position:absolute;right:-2px;bottom:-2px;width:28px;height:28px;border-radius:50%;background:var(--sun);color:#1F2A5C;display:flex;align-items:center;justify-content:center;font-size:.95rem;box-shadow:0 2px 0 rgba(0,0,0,.2)}.photomsg{color:var(--pink);font-weight:700}.photomsg:empty{display:none}"; document.head.appendChild(st); })();
+  function shrinkPhoto(file){
+    return new Promise((ok, no) => {
+      const url = URL.createObjectURL(file); const img = new Image();
+      img.onload = () => { const n = 160, c = document.createElement("canvas"); c.width = n; c.height = n; const side = Math.min(img.naturalWidth, img.naturalHeight); const sx = (img.naturalWidth - side) / 2, sy = (img.naturalHeight - side) / 2; c.getContext("2d").drawImage(img, sx, sy, side, side, 0, 0, n, n); URL.revokeObjectURL(url); ok(c.toDataURL("image/jpeg", 0.82)); };
+      img.onerror = () => { URL.revokeObjectURL(url); no(new Error("unreadable")); };
+      img.src = url;
+    });
+  }
+  function refreshChip(){ const c = document.getElementById("whoChip"); if(!c) return; const u = me(); c.innerHTML = u ? av(u)+esc(u.name)+' <b>⭐ '+total(u.id)+'</b>' : '👤 Who’s learning?'; c.classList.toggle("empty", !u); }
   refreshChip();
   window.MAZ_API = { best, setBest, me, refreshChip, root, reload: () => { try { const n = JSON.parse(localStorage.getItem(DKEY)); if(n && Array.isArray(n.users)){ D = n; D.stars = D.stars || {}; D.done = D.done || {}; refreshChip(); } } catch(e) {} }, speak:(t)=>{ try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.rate = .9; speechSynthesis.speak(u); } catch(e) {} } };
   const foot = document.createElement("footer");
@@ -295,16 +306,24 @@
       h += '<div class="learners">' + D.users.map(u=>{
         const t = total(u.id), mine = u.id === D.current;
         const dn = subjects.reduce((a,s)=>a+weeks(s).filter(w=>isDone(s,w.n,u.id)).length,0);
-        return '<article class="card learner'+(mine?' is-me':'')+'"><div class="lhead"><span class="av big">'+esc(u.name[0].toUpperCase())+'</span><div><h2>'+esc(u.name)+'</h2>'+(mine?'<span class="kicker">Learning now</span>':'')+'</div><span class="tot">⭐ '+t+'</span></div>' +
+        return '<article class="card learner'+(mine?' is-me':'')+'"><div class="lhead"><button class="photobtn" data-photo="'+u.id+'" aria-label="'+(okPhoto(u.photo)?'Change':'Add')+' photo for '+esc(u.name)+'">'+av(u,"huge")+'<span class="cam">📷</span></button><div><h2>'+esc(u.name)+'</h2>'+(mine?'<span class="kicker">Learning now</span>':'')+'</div><span class="tot">⭐ '+t+'</span></div>' +
           '<div class="sub-stars">'+subjects.map(s=>'<span style="--c:var(--'+s+')"><b>'+total(u.id,s+":")+'</b>'+C[s].name+'</span>').join("")+'<span style="--c:var(--pink)"><b>'+total(u.id,"game:")+'</b>Games</span></div>' +
-          '<p class="kicker">'+dn+' of 108 weeks done</p><div class="lbtns">' +
+          '<p class="kicker">'+dn+' of 108 weeks done</p><p class="photomsg" id="pm-'+u.id+'"></p><div class="lbtns">' +
           (mine ? '' : '<button class="btn" data-pick="'+u.id+'">Switch to '+esc(u.name)+'</button>') +
-          '<button class="btn ghost" data-ren="'+u.id+'">Rename</button><button class="btn ghost" data-del="'+u.id+'">'+(armed===u.id?'Tap again to remove':'Remove')+'</button></div></article>';
+          '<button class="btn ghost" data-photo="'+u.id+'">'+(okPhoto(u.photo)?'Change photo':'Add photo')+'</button>'+(okPhoto(u.photo)?'<button class="btn ghost" data-nophoto="'+u.id+'">Remove photo</button>':'')+'<button class="btn ghost" data-ren="'+u.id+'">Rename</button><button class="btn ghost" data-del="'+u.id+'">'+(armed===u.id?'Tap again to remove':'Remove')+'</button></div></article>';
       }).join("") + '</div>' +
+      '<input type="file" id="photoIn" accept="image/*" hidden>' +
       '<section class="card" style="margin-top:22px"><h2>Add a learner</h2><div class="addrow"><input id="newName" maxlength="20" placeholder="Name" autocomplete="off"><button class="btn" id="addBtn">Add learner</button></div></section>' +
       '<section class="card" style="margin-top:18px"><h2>Keep stars safe</h2><p>Stars are saved in this browser on this device. Playing, refreshing or closing the page never resets them. Clearing your browser’s data would erase them, so download a backup now and then. Restore it here, or on another device, to bring the stars back.</p><div class="lbtns"><button class="btn" id="dl">Download backup</button><label class="btn ghost" for="ul">Restore backup</label><input type="file" id="ul" accept=".json,application/json" hidden></div><p class="kicker" id="bkMsg"></p></section>';
       main.innerHTML = h;
       main.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>{ D.current = b.dataset.pick; save(); refreshChip(); render(); });
+      const pin = document.getElementById("photoIn"); let photoFor = null;
+      main.querySelectorAll("[data-photo]").forEach(b=>b.onclick=()=>{ photoFor = b.dataset.photo; pin.value = ""; pin.click(); });
+      pin.onchange = () => { const f = pin.files[0], id = photoFor; if(!f || !id) return; const msg = document.getElementById("pm-"+id);
+        if(msg) msg.textContent = "Adding photo…";
+        shrinkPhoto(f).then(data => { const u = D.users.find(x=>x.id===id); if(!u) return; u.photo = data; u.t = Date.now(); save(); refreshChip(); render(); })
+          .catch(() => { if(msg) msg.textContent = "That picture couldn’t be opened. Try a JPG or PNG photo."; }); };
+      main.querySelectorAll("[data-nophoto]").forEach(b=>b.onclick=()=>{ const u = D.users.find(x=>x.id===b.dataset.nophoto); if(!u) return; delete u.photo; u.t = Date.now(); save(); refreshChip(); render(); });
       main.querySelectorAll("[data-ren]").forEach(b=>b.onclick=()=>{ const u = D.users.find(x=>x.id===b.dataset.ren); const art = b.closest(".learner"); const h2 = art.querySelector("h2"); h2.innerHTML = '<input class="ren" maxlength="20" value="'+esc(u.name)+'">'; const inp = h2.querySelector("input"); inp.focus(); inp.select(); const done = () => { const v = inp.value.trim(); if(v && v !== u.name){ u.name = v; u.t = Date.now(); } save(); refreshChip(); render(); }; inp.onkeydown = e => { if(e.key==="Enter") done(); }; inp.onblur = done; });
       main.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{ const id = b.dataset.del; if(armed !== id){ armed = id; render(); setTimeout(()=>{ if(armed===id){ armed=null; render(); } }, 3000); return; } armed = null; D.removed = (D.removed || []).concat(id); D.users = D.users.filter(u=>u.id!==id); delete D.stars[id]; delete D.done[id]; if(D.current===id) D.current = D.users[0] ? D.users[0].id : null; save(); refreshChip(); render(); });
       const add = () => { const v = document.getElementById("newName").value.trim(); if(!v) return; addUser(v); refreshChip(); render(); };
@@ -316,4 +335,4 @@
     render();
   }
 })();
-(function(){ var r = document.body.dataset.root || ""; var sc = document.createElement("script"); sc.src = r + "assets/sync.js?v=20261019d"; document.body.appendChild(sc); })();
+(function(){ var r = document.body.dataset.root || ""; var sc = document.createElement("script"); sc.src = r + "assets/sync.js?v=20261019f"; document.body.appendChild(sc); })();
