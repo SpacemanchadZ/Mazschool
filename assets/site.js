@@ -32,6 +32,7 @@
   function markDone(s,w){ if(!me() || isDone(s,w)) return false; const id = uid(); D.done[id] = D.done[id] || {}; D.done[id][s] = D.done[id][s] || {}; D.done[id][s][w] = true; D.doneT = D.doneT || {}; D.doneT[id+"|"+s+"|"+w] = Date.now(); save(); return true; }
   function finPart(s,w,part){ if(!me()) return null; const id = uid(); D.fin = D.fin || {}; D.fin[id] = D.fin[id] || {}; const k = s+":"+w; const f = D.fin[id][k] = D.fin[id][k] || {}; f[part] = 1; save(); return f; }
   const finOf = (s,w) => ((D.fin || {})[uid()] || {})[s+":"+w] || {};
+  const partDone = (s,w,part) => !!finOf(s,w)[part] || best(s+":"+w+":"+part) > 0;
   (function backfill(){ if(D.bfDone1) return; D.doneT = D.doneT || {}; Object.keys(D.stars || {}).forEach(id => { const st = D.stars[id] || {}; Object.keys(st).forEach(k => { const m = k.match(/^(math|reading|science):(\d+):act$/); if(!m || !(st[k] > 0) || !(st[m[1]+":"+m[2]+":quiz"] > 0)) return; if(D.doneT[id+"|"+m[1]+"|"+m[2]]) return; D.done[id] = D.done[id] || {}; D.done[id][m[1]] = D.done[id][m[1]] || {}; if(!D.done[id][m[1]][m[2]]){ D.done[id][m[1]][m[2]] = true; D.doneT[id+"|"+m[1]+"|"+m[2]] = Date.now(); } }); }); D.bfDone1 = true; save(); })();
 
   function weeks(s){ const out = []; let n = 0; C[s].units.forEach((u,ui)=>u.w.forEach(w=>{ n++; out.push({n, unit:u.t, ui, title:w[0], goal:w[1], mat:w[2], steps:w[3], qs:w[4], extra:w[5]||{}}); })); return out; }
@@ -50,7 +51,7 @@
   document.body.prepend(head);
   const okPhoto = v => typeof v === "string" && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(v);
   function av(u, size){ const cls = "av" + (size ? " " + size : ""); return okPhoto(u.photo) ? '<span class="'+cls+' ph"><img src="'+u.photo+'" alt=""></span>' : '<span class="'+cls+'">'+esc(u.name[0].toUpperCase())+'</span>'; }
-  (function(){ const st = document.createElement("style"); st.textContent = ".av.ph{overflow:hidden;padding:0;background:var(--line)}.av.ph img{width:100%;height:100%;object-fit:cover;display:block}.av.huge{width:76px;height:76px;font-size:2.1rem;flex:none}.photobtn{position:relative;border:none;background:none;padding:0;cursor:pointer;border-radius:50%;flex:none}.photobtn .cam{position:absolute;right:-2px;bottom:-2px;width:28px;height:28px;border-radius:50%;background:var(--sun);color:#1F2A5C;display:flex;align-items:center;justify-content:center;font-size:.95rem;box-shadow:0 2px 0 rgba(0,0,0,.2)}.photomsg{color:var(--pink);font-weight:700}.photomsg:empty{display:none}"; document.head.appendChild(st); })();
+  (function(){ const st = document.createElement("style"); st.textContent = ".av.ph{overflow:hidden;padding:0;background:var(--line)}.av.ph img{width:100%;height:100%;object-fit:cover;display:block}.av.huge{width:76px;height:76px;font-size:2.1rem;flex:none}.photobtn{position:relative;border:none;background:none;padding:0;cursor:pointer;border-radius:50%;flex:none}.photobtn .cam{position:absolute;right:-2px;bottom:-2px;width:28px;height:28px;border-radius:50%;background:var(--sun);color:#1F2A5C;display:flex;align-items:center;justify-content:center;font-size:.95rem;box-shadow:0 2px 0 rgba(0,0,0,.2)}.photomsg{color:var(--pink);font-weight:700}.photomsg:empty{display:none}.doneparts{display:flex;gap:14px;flex-wrap:wrap;font-weight:800;color:var(--soft);margin-bottom:10px}.doneparts .ok{color:var(--mint)}"; document.head.appendChild(st); })();
   function shrinkPhoto(file){
     return new Promise((ok, no) => {
       const url = URL.createObjectURL(file); const img = new Image();
@@ -247,7 +248,7 @@
       '<section class="card practice" style="margin-top:18px;--c:var(--'+s+')"><h2>Practice game</h2><div id="act"></div></section>' +
       '<section class="card quiz" style="margin-top:18px"><h2>Quick check</h2><p class="lead" style="margin:0">'+QS.length+' questions. Get each one right on the first try for a star.</p>' +
       QS.map((qq,qi)=>'<div class="q"><p><span class="qn">'+(qi+1)+'.</span> '+esc(qq.q)+'</p>'+(qq.vis ? '<div class="act-vis">'+qq.vis+'</div>' : '')+'<div class="opts">'+qq.opts.map((o,k)=>'<button class="opt" data-ok="'+(k===qq.a?1:0)+'">'+esc(o)+'</button>').join("")+'</div><div class="qfb" aria-live="polite"></div></div>').join("") +
-      '<div class="finish"><button class="btn" id="markDone"></button><span id="doneNote" class="kicker"></span></div></section>' +
+      '<div class="finish"><div id="doneParts" class="doneparts"></div><button class="btn" id="markDone"></button><span id="doneNote" class="kicker"></span></div></section>' +
       '</div><div id="teachView" hidden>'+teacherPlan(s, w, wn, QS)+'</div>' +
       '<nav class="pager">' + (wn>1 ? '<a class="btn ghost" href="?s='+s+'&w='+(wn-1)+'">Week '+(wn-1)+'</a>' : '<span></span>') +
       (wn<36 ? '<a class="btn ghost" href="?s='+s+'&w='+(wn+1)+'">Week '+(wn+1)+'</a>' : '<a class="btn ghost" href="/'+s+'">Back to '+C[s].name+'</a>') + '</nav>';
@@ -269,9 +270,10 @@
     });
     const md = document.getElementById("markDone");
     const paint = () => { const d = isDone(s,wn); md.textContent = d ? "Week done ✓" : "Mark this week done"; md.className = "btn" + (d ? " done" : ""); document.getElementById("doneNote").textContent = d ? "Tap again to undo." : ""; };
-    md.onclick = () => { toggleDone(s,wn); paint(); };
-    weekCheck = part => { const f = finPart(s,wn,part); if(!f) return; if(f.act && f.quiz && markDone(s,wn)){ paint(); document.getElementById("doneNote").textContent = "🎉 Week "+wn+" done! It’s checked off on the "+C[s].name+" page."; tone(true); } else if(!isDone(s,wn)){ document.getElementById("doneNote").textContent = f.act && !f.quiz ? "Practice done! Finish the quick check to complete the week." : !f.act && f.quiz ? "Quick check done! Finish the practice game to complete the week." : ""; } };
-    paint();
+    md.onclick = () => { toggleDone(s,wn); paint(); doneBar(); };
+    const doneBar = () => { const el = document.getElementById("doneParts"); if(!el) return; if(!me()){ el.innerHTML = ""; return; } const a = partDone(s,wn,"act"), q = partDone(s,wn,"quiz"); el.innerHTML = '<span class="'+(a?'ok':'')+'">'+(a?'✅':'⬜')+' Practice game</span><span class="'+(q?'ok':'')+'">'+(q?'✅':'⬜')+' Quick check</span>'; };
+    weekCheck = part => { if(part) finPart(s,wn,part); doneBar(); if(!me()) return; const a = partDone(s,wn,"act"), q = partDone(s,wn,"quiz"); if(a && q){ if(!isDone(s,wn) && !(D.doneT || {})[uid()+"|"+s+"|"+wn] && markDone(s,wn)){ paint(); document.getElementById("doneNote").textContent = "🎉 Week "+wn+" done! It’s checked off on the "+C[s].name+" page."; tone(true); } } else if(!isDone(s,wn) && part){ document.getElementById("doneNote").textContent = a ? "Practice done! Finish the quick check to complete the week." : "Quick check done! Finish the practice game to complete the week."; } };
+    paint(); weekCheck(null);
   }
 
   if(page === "teacher"){
